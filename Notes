@@ -1,0 +1,22 @@
+-- 1. What form value does each edition's codes actually land on?
+SELECT 'dme' edition, c.FORM_TYP, COUNT(*) lines, COUNT(DISTINCT c.PROC_CD) codes
+FROM main.prod_input.all_data_C_A c
+JOIN main.sedo.medicaid_ncci_edit_dme_mue_q4_2026 d
+  ON UPPER(TRIM(c.PROC_CD)) = UPPER(TRIM(d.`HCPCS/CPT Code`))
+GROUP BY c.FORM_TYP
+UNION ALL
+SELECT 'outpatient', c.FORM_TYP, COUNT(*), COUNT(DISTINCT c.PROC_CD)
+FROM main.prod_input.all_data_C_A c
+JOIN main.sedo.medicaid_ncci_edit_outpatient_mue_q4_2026 d
+  ON UPPER(TRIM(c.PROC_CD)) = UPPER(TRIM(d.`HCPCS/CPT Code`))
+GROUP BY c.FORM_TYP
+ORDER BY edition, lines DESC;
+
+
+-- 2. Codes in more than one MUE edition (where routing actually matters)
+SELECT code, COUNT(*) editions, collect_set(ed) which
+FROM (
+  SELECT UPPER(TRIM(`HCPCS/CPT Code`)) code, 'prac' ed FROM main.sedo.medicaid_ncci_edit_practitioner_mue_q4_2026
+  UNION ALL SELECT UPPER(TRIM(`HCPCS/CPT Code`)), 'op' FROM main.sedo.medicaid_ncci_edit_outpatient_mue_q4_2026
+  UNION ALL SELECT UPPER(TRIM(`HCPCS/CPT Code`)), 'dme' FROM main.sedo.medicaid_ncci_edit_dme_mue_q4_2026
+) GROUP BY code HAVING COUNT(*) > 1 ORDER BY editions DESC LIMIT 50;
