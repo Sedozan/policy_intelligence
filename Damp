@@ -1,0 +1,18 @@
+# 246427 as a billing entity — who services through it?
+billing_entity_profile = (
+    df_all.filter(F.col(BPROV_COL) == "246427")
+    .groupBy(SPROV_COL)
+    .agg(
+        F.sum(PMT_COL).alias("total_paid"),
+        F.sum("QUANTITY_PAID").alias("total_units"),
+        F.countDistinct(MEMBER_COL).alias("unique_members"),
+        F.countDistinct(PROC_COL).alias("unique_proc_codes"),
+        F.countDistinct("srv_date").alias("active_days"),
+    )
+    .orderBy(F.desc("total_paid"))
+)
+billing_entity_profile.show(50, truncate=False)
+
+# How many servicing providers does this entity bill for?
+print(f"Total servicing providers: {billing_entity_profile.count()}")
+print(f"Total paid through 246427: {df_all.filter(F.col(BPROV_COL) == '246427').agg(F.sum(PMT_COL)).collect()[0][0]:,.2f}")
