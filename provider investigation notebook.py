@@ -440,7 +440,7 @@ def run_analysis(df_bhp, window_label, window_suffix):
     sheets[f"Overall_{window_suffix}"] = consolidated_df
 
     print(f"    Part A complete")
-    display(consolidated_df)
+    print(consolidated_df.to_string(index=False))
 
     # ─── 8. Per-proc-code analysis ───────────────────────────────────────
     target_proc_codes = (
