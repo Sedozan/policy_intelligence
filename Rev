@@ -1,0 +1,17 @@
+
+
+	1.	I use the Databricks AI assistant for code suggestions when building PySpark feature engineering.
+	2.	I use the same assistant to debug pipeline errors and dependency issues in Databricks.
+	3.	I built an LLM step that turns the fraud model's top features into plain-language summaries for investigators.
+	4.	I improved those summaries by feeding the LLM peer statistics and overall procedure code statistics, so the output explains how a provider compares to others.
+	5.	For the Policy Intelligence Engine, an LLM proposes billing rules from AHCCCS policy chapters. Each rule must match the source text and be signed off by a person before it is used.
+
+All AI output is reviewed before it is used. My main lesson is that AI saves real time, but it can be confidently wrong. The review step is what makes it safe to use. In the second half, I plan to share what I have learned in the team AI sessions.
+
+Delivery Excellence (FY26GOAL58005)
+
+I built the Policy Intelligence Engine and presented it to AHCCCS. It turns AHCCCS billing policy and federal NCCI edits into rules that can be checked against paid claims, and each rule links back to the exact policy text it came from. After a well-received proof of concept, the work is now at the MVP stage. I fixed accuracy issues found in reviews and added a required human sign-off before any rule goes live. I got feedback that my first presentation was too long and too technical, so I cut it down to what the client needs to decide.
+
+On anomaly detection, I created new fields that help prioritize the model's results, so investigators can see the most important providers first. I also built detailed peer statistics for servicing and billing providers. We plan to scale them to most providers. These statistics also feed the LLM summaries.
+
+In the second half, I plan to measure rule accuracy with our SME, move more rules into production, and document the handover so the client can maintain the work after our engagement.
