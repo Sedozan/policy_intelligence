@@ -1,0 +1,9 @@
+spark.sql("""
+CREATE OR REPLACE TABLE main.policy_kb.policy_review_log AS
+SELECT rule_id, extraction_key, decision, corrected_rule,
+       CAST(corrected_predicate AS STRING) AS corrected_predicate,
+       CAST(reviewer AS STRING) AS reviewer,
+       review_note, ingested_at, applied_outcome
+FROM main.policy_kb.policy_review_log
+""")
+spark.sql("DESCRIBE main.policy_kb.policy_review_log").show()
