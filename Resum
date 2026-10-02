@@ -1,0 +1,104 @@
+SEDO SENOU
+
+Huntersville, NC 28078 | 704-819-1664 | smfm.senou@gmail.com
+LinkedIn | GitHub | RPubs
+
+DATA SCIENTIST | MACHINE LEARNING | HEALTHCARE & INSURANCE ANALYTICS
+
+PROFESSIONAL SUMMARY
+
+Data Scientist and Analytics Consultant with 10+ years of experience developing data-driven solutions across healthcare, insurance, claims, fraud analytics, and marketing. Experienced in designing end-to-end machine learning solutions spanning data engineering, feature engineering, anomaly detection, predictive modeling, model evaluation, explainability, monitoring, and production reporting.
+
+Deep domain expertise in Medicare/Medicaid and property & casualty claims, with hands-on experience applying machine learning to fraud, waste and abuse detection, claims triage, customer retention, lifetime value, total-loss prediction, computer vision, NLP, and marketing optimization. Strong technical background in Python, PySpark, SQL, SAS, Databricks, AWS, and modern machine learning frameworks, with demonstrated ability to translate complex model outputs into actionable insights for business leaders, investigators, analysts, and other stakeholders.
+
+TECHNICAL SKILLS
+
+Programming & Data: Python, PySpark, SQL, SAS, R, Unix/Linux, VBA
+
+Machine Learning: Isolation Forest, Local Outlier Factor, Autoencoders, K-Means, One-Class SVM, Gradient Boosting, XGBoost, LightGBM, Scikit-learn, Keras
+
+Analytics & Modeling: Anomaly Detection, Predictive Modeling, Fraud Analytics, Feature Engineering, Model Evaluation, Statistical Modeling, Regression, A/B Testing, Time-Series Analysis, Customer Segmentation
+
+AI & Explainability: Large Language Models (LLMs), SHAP, LIME, Captum, Prompt Engineering, NLP
+
+Platforms & Technologies: Databricks, Apache Spark, AWS/S3, Scality, Domino Data Lab, Oracle, Hadoop, Git/GitHub, Jenkins, Jira, SAS Viya, SAS Enterprise Guide
+
+Visualization & Reporting: Power BI, Tableau, Matplotlib, Excel, PowerPoint
+
+Industry Expertise: Medicaid, Medicare, Property & Casualty Insurance, Healthcare Claims, Fraud/Waste/Abuse, Program Integrity, ICD-9/10, CPT/HCPCS, DRG, FHIR, HL7
+
+PROFESSIONAL EXPERIENCE
+
+NTT DATA
+
+Data Science Consultant | June 2024 – Present
+
+* Design and develop machine learning and advanced analytics solutions for healthcare and insurance clients, translating complex business problems into scalable data science workflows using Python, PySpark, SQL, Databricks, and cloud-based data platforms.
+* Architected an unsupervised fraud, waste, and abuse detection framework for a state Medicaid program to identify anomalous provider and claims behavior across multiple healthcare populations, including Durable Medical Equipment, Non-Emergency Medical Transportation, Behavioral Health, and institutional services.
+* Developed ensemble anomaly-detection methodologies incorporating Isolation Forest, Local Outlier Factor, Autoencoders, K-Means, and One-Class SVM to identify suspicious behavior across provider, member, claim, and visit-level perspectives.
+* Designed composite risk-scoring methodologies combining model outputs across multiple observation windows, historical and current behavior, peer comparisons, utilization patterns, and payment indicators to prioritize providers for investigative review.
+* Engineered hundreds of claims-based features capturing procedure utilization, diagnosis patterns, billing relationships, geographic behavior, service frequency, provider diversity, policy limits, overutilization, and statistical deviations from comparable providers.
+* Developed peer-based analytical methodologies to evaluate provider behavior relative to comparable providers, improving interpretability of anomalous utilization patterns and supporting efforts to reduce false-positive referrals.
+* Built explainability workflows combining machine-learning feature attribution and Large Language Models to translate complex anomaly-detection results into concise, investigator-friendly narratives explaining why providers were flagged.
+* Developed AI-assisted healthcare policy intelligence capabilities to extract and structure information from Medicaid policy documents and incorporate procedure-specific reimbursement and utilization requirements into downstream analytical workflows.
+* Automated recurring fraud referral and monitoring workflows supporting provider prioritization, longitudinal analysis, investigation outputs, and Power BI reporting for program-integrity stakeholders.
+* Developed and monitored predictive solutions for insurance claims escalation risk using structured claim attributes, adjuster notes, keyword/NLP signals, and machine-learning predictions.
+* Built automated weekly model-monitoring workflows evaluating claim populations, model flags, regional patterns, peril distributions, operational outcomes, and time-based performance metrics.
+* Refit and evaluated a large-scale customer retention/Lifetime Value model using updated training populations and alternative feature sets, comparing candidate models using AUC, Log Loss, Average Precision, and SHAP-based feature analysis.
+* Collaborate with data scientists, engineers, investigators, analysts, and client leadership throughout the full analytics lifecycle, including requirements gathering, exploratory analysis, feature engineering, modeling, validation, production implementation, monitoring, and stakeholder communication.
+
+ALLSTATE INSURANCE CO. — Charlotte, NC
+
+Data Scientist | September 2021 – June 2024
+
+* Applied statistical and machine learning techniques including regression modeling, hypothesis testing, univariate and multivariate analysis, and time-series analysis to solve business problems across claims and marketing.
+* Adapted a computer vision solution for license plate detection and recognition, supporting automation and operational efficiency improvements within claims workflows.
+* Refit and enhanced a Total Loss predictive model through strategic data enrichment, feature evaluation, threshold optimization, and iterative experimentation to maximize recall at targeted decision thresholds.
+* Developed a custom NLP and keyword-classification framework to categorize unstructured, user-generated text into business-relevant classes for downstream analytics and operational use.
+* Contributed to the development and deployment of computer vision models for vehicle damage detection from claim photographs, supporting faster claims assessment and resolution.
+* Built predictive models to optimize bid strategies for marketing call and web leads, informing budget allocation and improving marketing return on investment.
+* Evaluated the impact of COVID-19 on customer lifetime value and consumer behavior, providing analytical insights that informed adjustments to marketing investment strategies.
+
+Analytics Consultant | July 2018 – September 2021
+
+* Developed complex SQL and SAS analytical solutions to evaluate insurance claims, customer behavior, operational performance, and emerging business opportunities.
+* Analyzed claims data to identify customer segments most likely to adopt digital claims submission, enabling targeted engagement strategies designed to increase digital adoption and reduce operational costs.
+* Integrated predictions and fraud indicators from multiple systems using SAS and SQL to develop an automated daily suspicious-claims report combining model predictions, NICB indicators, and ISO flags, helping investigators prioritize claims for review.
+* Engineered a medical provider NPI lookup and reporting solution using SQL, SAS, Tableau, and automated ETL workflows to improve access to provider information and support payment accuracy.
+* Built a claims triage solution using SQL, SAS, and Python to analyze medical claim information and identify serious injuries, including traumatic brain injuries, spinal injuries, and organ damage, supporting faster routing of high-severity claims.
+* Conducted statistical analysis, hypothesis testing, pattern recognition, and predictive analytics to provide actionable insights for claims and business leadership.
+
+NOVITAS SOLUTIONS
+
+Senior Data Analyst | September 2016 – July 2018
+
+* Analyzed large Medicare and Medicaid claims datasets using SAS and SQL to identify trends, utilization patterns, and potential billing issues.
+* Applied descriptive and inferential statistical techniques to validate findings and support healthcare analytics and reporting initiatives.
+* Developed reusable SAS macros and automated reporting solutions to streamline recurring claims analysis and improve analytical efficiency.
+* Produced and reviewed statistical reports supporting CMS/OIG requests, provider billing inquiries, and internal business stakeholders.
+
+CARESOURCE INC.
+
+Informatics Specialist | July 2014 – September 2016
+
+* Analyzed and segmented healthcare claims using ICD-9, ICD-10, and other healthcare coding systems to support clinical and operational analytics.
+* Automated high-dollar claims analysis workflows using SAS and Unix/Cron, reducing manual production processes and improving reporting consistency.
+* Developed reusable SAS programs, macros, and automated reporting solutions for healthcare claims analysis and stakeholder reporting.
+* Led data cleaning, integration, transformation, validation, and trend-analysis activities across large healthcare datasets.
+* Collaborated with business stakeholders to define analytical requirements and translate healthcare data into actionable reporting and insights.
+
+EDUCATION
+
+Wake Forest University — Winston-Salem, NC
+Master of Science in Business Analytics, May 2018
+
+Forsyth Technical Community College — Winston-Salem, NC
+Certificate in Project Management Technology – Information Systems, May 2015
+
+Salem College — Winston-Salem, NC
+Bachelor of Science in Accounting, May 2014
+
+CERTIFICATIONS
+
+* SAS Certified
+* Microsoft Office Specialist – Excel
