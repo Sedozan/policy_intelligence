@@ -1,0 +1,1165 @@
+################################################################################
+# CaseScope case leads — SYNTHETIC TEST DATA — illustrative of format, not real findings
+# Analytic leads for review; NOT determinations of fraud, intent or medical necessity.
+################################################################################
+
+CASE LEAD [Strong] — Billing Provider 783455  (HORIZON BEHAVIORAL HEALTH)
+============================================================================
+Provider type     : PHARMACY
+Activity          : 66 paid claim lines billed | 32 members | last service 2026-08-28
+Total paid (role) : $2,801
+Independent grounds: 2 — Billing intensity (units / claim volume per member-day); Members shared across unusually many billers
+Breadth           : 4 members, 4 member-days in flagged claims
+$ in flagged claims: $741 (26% of this provider's paid $ in this role; 16 distinct claim lines, each counted once)
+
+WHY THIS PROVIDER IS FLAGGED FOR REVIEW
+----------------------------------------------------------------------------
+Billing intensity (units / claim volume per member-day)
+  1. Billed time above 24 hours in a day
+     On 1 day(s), the time this provider billed for a single member added
+     up to more than 24 hours (peak 25.0 hours: T1019 25.0h). Time is
+     computed from units and each procedure's stated unit. On 1 of these
+     day(s), one service code alone exceeds 24 hours, which one person
+     cannot deliver.
+     Example claim line IDs (UNIQUE_KEY): 2412042098287401C, 2412044431017406C, 2412045560957405C, 2412047644554104C, 2412047680331308C
+
+Members shared across unusually many billers
+  2. Members seen by unusually many billers
+     Billed for 3 member(s) who each received services from an unusually
+     large number of different billing providers (up to 9), above the
+     99.5th percentile of all members. This pattern is consistent with
+     patient brokering but also occurs with members who have complex care
+     needs.
+     Example claim line IDs (UNIQUE_KEY): 2511112621226406C, 2511113149914301C, 2511113789648503C, 2511117552147705C, 2608281278111501C
+
+INVESTIGATOR NEXT STEPS
+----------------------------------------------------------------------------
+  - Look up the example lines by UNIQUE_KEY and confirm each pattern on the raw claims.
+  - R1: check the service times and staff; >24h for one member in a day needs an
+    explanation such as several staff serving the member at the same time.
+  - R4: check whether the shared members have complex care needs (a legitimate cause).
+  - Check the provider against the suspension list and prior SIU dispositions.
+
+  Basis: post-payment claims and billing data only. This is an analytic lead for
+  review, NOT a determination of fraud, intent, medical necessity or wrongdoing.
+  Source data: SYNTHETIC TEST DATA — illustrative of format, not real findings
+
+
+CASE LEAD [Strong] — Billing Provider 202362  (SUNRISE HEALTH CENTER)
+============================================================================
+Provider type     : SCHOOL BASED ATTENDANT CARE
+Activity          : 19 paid claim lines billed | 9 members | last service 2026-05-29
+Total paid (role) : $1,467
+Independent grounds: 2 — Billing intensity (units / claim volume per member-day); Members shared across unusually many billers
+Breadth           : 3 members, 3 member-days in flagged claims
+$ in flagged claims: $989 (67% of this provider's paid $ in this role; 13 distinct claim lines, each counted once)
+
+WHY THIS PROVIDER IS FLAGGED FOR REVIEW
+----------------------------------------------------------------------------
+Billing intensity (units / claim volume per member-day)
+  1. Billed time above 24 hours in a day
+     On 1 day(s), the time this provider billed for a single member added
+     up to more than 24 hours (peak 41.5 hours: S5125 13.3h + T1019 28.3h).
+     Time is computed from units and each procedure's stated unit. On 1 of
+     these day(s), one service code alone exceeds 24 hours, which one
+     person cannot deliver.
+     Example claim line IDs (UNIQUE_KEY): 2602171761978210C, 2602175010584905C, 2602175351524504C, 2602175637338011C, 2602176412147302C
+  2. Units per member-day above peers
+     On 1 member-day(s), units billed for one member were above the 99.5th
+     percentile of all provider/member/day groups in the same category of
+     service (peak 166 units).
+     Example claim line IDs (UNIQUE_KEY): 2602171761978210C, 2602175010584905C, 2602175351524504C, 2602175637338011C, 2602176412147302C
+  3. Claim lines per member-day above peers
+     On 1 member-day(s), the number of claim lines for one member was above
+     the 99.5th percentile of all provider/member/day/category-of-service
+     groups (peak 11 lines).
+     Example claim line IDs (UNIQUE_KEY): 2602171761978210C, 2602175010584905C, 2602175351524504C, 2602175637338011C, 2602176412147302C
+
+Members shared across unusually many billers
+  4. Members seen by unusually many billers
+     Billed for 2 member(s) who each received services from an unusually
+     large number of different billing providers (up to 9), above the
+     99.5th percentile of all members. This pattern is consistent with
+     patient brokering but also occurs with members who have complex care
+     needs.
+     Example claim line IDs (UNIQUE_KEY): 2410149189836201C, 2507178320555601C
+
+INVESTIGATOR NEXT STEPS
+----------------------------------------------------------------------------
+  - Look up the example lines by UNIQUE_KEY and confirm each pattern on the raw claims.
+  - R1: check the service times and staff; >24h for one member in a day needs an
+    explanation such as several staff serving the member at the same time.
+  - R4: check whether the shared members have complex care needs (a legitimate cause).
+  - Check the provider against the suspension list and prior SIU dispositions.
+
+  Basis: post-payment claims and billing data only. This is an analytic lead for
+  review, NOT a determination of fraud, intent, medical necessity or wrongdoing.
+  Source data: SYNTHETIC TEST DATA — illustrative of format, not real findings
+
+
+CASE LEAD [Moderate] — Billing Provider 78638  (VALLEY BEHAVIORAL HEALTH)
+============================================================================
+Provider type     : PHARMACY
+Activity          : 91 paid claim lines billed | 48 members | last service 2026-08-05
+Total paid (role) : $3,111
+Independent grounds: 2 — Billing intensity (units / claim volume per member-day); Members shared across unusually many billers
+Breadth           : 4 members, 4 member-days in flagged claims
+$ in flagged claims: $1,076 (35% of this provider's paid $ in this role; 24 distinct claim lines, each counted once)
+
+WHY THIS PROVIDER IS FLAGGED FOR REVIEW
+----------------------------------------------------------------------------
+Billing intensity (units / claim volume per member-day)
+  1. Units per member-day above peers
+     On 2 member-day(s), units billed for one member were above the 99.5th
+     percentile of all provider/member/day groups in the same category of
+     service (peak 496 units).
+     Example claim line IDs (UNIQUE_KEY): 2602221583048405C, 2602221810447901C, 2602222813993502C, 2602223075211004C, 2602223134300810C
+  2. Claim lines per member-day above peers
+     On 2 member-day(s), the number of claim lines for one member was above
+     the 99.5th percentile of all provider/member/day/category-of-service
+     groups (peak 12 lines).
+     Example claim line IDs (UNIQUE_KEY): 2602221583048405C, 2602221810447901C, 2602222813993502C, 2602223075211004C, 2602223134300810C
+
+Members shared across unusually many billers
+  3. Members seen by unusually many billers
+     Billed for 2 member(s) who each received services from an unusually
+     large number of different billing providers (up to 9), above the
+     99.5th percentile of all members. This pattern is consistent with
+     patient brokering but also occurs with members who have complex care
+     needs.
+     Example claim line IDs (UNIQUE_KEY): 2511149258453701C, 2603089307693301C
+
+INVESTIGATOR NEXT STEPS
+----------------------------------------------------------------------------
+  - Look up the example lines by UNIQUE_KEY and confirm each pattern on the raw claims.
+  - R4: check whether the shared members have complex care needs (a legitimate cause).
+  - Check the provider against the suspension list and prior SIU dispositions.
+
+  Basis: post-payment claims and billing data only. This is an analytic lead for
+  review, NOT a determination of fraud, intent, medical necessity or wrongdoing.
+  Source data: SYNTHETIC TEST DATA — illustrative of format, not real findings
+
+
+CASE LEAD [Moderate] — Billing Provider 713228  (CANYON PHARMACY)
+============================================================================
+Provider type     : HOSPITAL
+Activity          : 45 paid claim lines billed | 12 members | last service 2026-07-03
+Total paid (role) : $16,746
+Independent grounds: 2 — Billing intensity (units / claim volume per member-day); Outpatient facility pricing
+Breadth           : 3 members, 3 member-days in flagged claims
+$ in flagged claims: $12,294 (73% of this provider's paid $ in this role; 32 distinct claim lines, each counted once)
+
+WHY THIS PROVIDER IS FLAGGED FOR REVIEW
+----------------------------------------------------------------------------
+Billing intensity (units / claim volume per member-day)
+  1. Units per member-day above peers
+     On 2 member-day(s), units billed for one member were above the 99.5th
+     percentile of all provider/member/day groups in the same category of
+     service (peak 15 units).
+     Example claim line IDs (UNIQUE_KEY): 2510111662150106C, 2510112425472302C, 2510112431583609C, 2510112911675908C, 2510114148151410C
+  2. Claim lines per member-day above peers
+     On 2 member-day(s), the number of claim lines for one member was above
+     the 99.5th percentile of all provider/member/day/category-of-service
+     groups (peak 12 lines).
+     Example claim line IDs (UNIQUE_KEY): 2510111662150106C, 2510112425472302C, 2510112431583609C, 2510112911675908C, 2510114148151410C
+
+Outpatient facility pricing
+  3. Unusual outpatient facility encounters
+     Outpatient facility claims show 1 encounter(s) with facility payments
+     far above the typical encounter (more than 8 robust deviations above
+     the median; largest $3,550).
+     Example claim line IDs (UNIQUE_KEY): 2607031010670701C, 2607032394799906C, 2607034174689405C, 2607035805869403C, 2607036514627102C
+
+INVESTIGATOR NEXT STEPS
+----------------------------------------------------------------------------
+  - Look up the example lines by UNIQUE_KEY and confirm each pattern on the raw claims.
+  - Check the provider against the suspension list and prior SIU dispositions.
+
+  Basis: post-payment claims and billing data only. This is an analytic lead for
+  review, NOT a determination of fraud, intent, medical necessity or wrongdoing.
+  Source data: SYNTHETIC TEST DATA — illustrative of format, not real findings
+
+
+CASE LEAD [Moderate] — Billing Provider 139610  (SAGE SERVICES)
+============================================================================
+Provider type     : CLINIC
+Activity          : 42 paid claim lines billed | 17 members | last service 2026-06-30
+Total paid (role) : $9,712
+Independent grounds: 2 — Billing intensity (units / claim volume per member-day); Outpatient facility pricing
+Breadth           : 3 members, 3 member-days in flagged claims
+$ in flagged claims: $5,810 (60% of this provider's paid $ in this role; 22 distinct claim lines, each counted once)
+
+WHY THIS PROVIDER IS FLAGGED FOR REVIEW
+----------------------------------------------------------------------------
+Billing intensity (units / claim volume per member-day)
+  1. Units per member-day above peers
+     On 1 member-day(s), units billed for one member were above the 99.5th
+     percentile of all provider/member/day groups in the same category of
+     service (peak 19 units).
+     Example claim line IDs (UNIQUE_KEY): 2508311136578712C, 2508313203507809C, 2508313531388405C, 2508314807287604C, 2508315566196602C
+  2. Claim lines per member-day above peers
+     On 1 member-day(s), the number of claim lines for one member was above
+     the 99.5th percentile of all provider/member/day/category-of-service
+     groups (peak 12 lines).
+     Example claim line IDs (UNIQUE_KEY): 2508311136578712C, 2508313203507809C, 2508313531388405C, 2508314807287604C, 2508315566196602C
+
+Outpatient facility pricing
+  3. Unusual outpatient facility encounters
+     Outpatient facility claims show 2 encounter(s) with facility payments
+     far above the typical encounter (more than 8 robust deviations above
+     the median; largest $2,467).
+     Example claim line IDs (UNIQUE_KEY): 2605012872261702C, 2605014071534203C, 2605015393765101C, 2605018438680106C, 2605018799816005C
+
+INVESTIGATOR NEXT STEPS
+----------------------------------------------------------------------------
+  - Look up the example lines by UNIQUE_KEY and confirm each pattern on the raw claims.
+  - Check the provider against the suspension list and prior SIU dispositions.
+
+  Basis: post-payment claims and billing data only. This is an analytic lead for
+  review, NOT a determination of fraud, intent, medical necessity or wrongdoing.
+  Source data: SYNTHETIC TEST DATA — illustrative of format, not real findings
+
+
+CASE LEAD [Moderate] — Billing Provider 586336  (SAGE HEALTH CENTER)
+============================================================================
+Provider type     : HOSPITAL
+Activity          : 20 paid claim lines billed | 10 members | last service 2026-05-11
+Total paid (role) : $7,961
+Independent grounds: 2 — Outpatient facility pricing; Billing intensity (units / claim volume per member-day)
+Breadth           : 2 members, 2 member-days in flagged claims
+$ in flagged claims: $3,137 (39% of this provider's paid $ in this role; 7 distinct claim lines, each counted once)
+
+WHY THIS PROVIDER IS FLAGGED FOR REVIEW
+----------------------------------------------------------------------------
+Outpatient facility pricing
+  1. Unusual outpatient facility encounters
+     Outpatient facility claims show 1 encounter(s) with facility payments
+     far above the typical encounter (more than 8 robust deviations above
+     the median; largest $2,584).
+     Example claim line IDs (UNIQUE_KEY): 2506292728074903C, 2506295668298405C, 2506297249896902C, 2506297560569701C, 2506299750467004C
+
+Billing intensity (units / claim volume per member-day)
+  2. Units per member-day above peers
+     On 1 member-day(s), units billed for one member were above the 99.5th
+     percentile of all provider/member/day groups in the same category of
+     service (peak 685 units).
+     Example claim line IDs (UNIQUE_KEY): 2502153074780101C, 2502153143344602C
+
+INVESTIGATOR NEXT STEPS
+----------------------------------------------------------------------------
+  - Look up the example lines by UNIQUE_KEY and confirm each pattern on the raw claims.
+  - Check the provider against the suspension list and prior SIU dispositions.
+
+  Basis: post-payment claims and billing data only. This is an analytic lead for
+  review, NOT a determination of fraud, intent, medical necessity or wrongdoing.
+  Source data: SYNTHETIC TEST DATA — illustrative of format, not real findings
+
+
+CASE LEAD [Moderate] — Billing Provider 415181  (DESERT BEHAVIORAL HEALTH)
+============================================================================
+Provider type     : CLINIC
+Activity          : 59 paid claim lines billed | 25 members | last service 2026-06-16
+Total paid (role) : $7,480
+Independent grounds: 2 — Billing intensity (units / claim volume per member-day); Outpatient facility pricing
+Breadth           : 2 members, 2 member-days in flagged claims
+$ in flagged claims: $3,766 (50% of this provider's paid $ in this role; 17 distinct claim lines, each counted once)
+
+WHY THIS PROVIDER IS FLAGGED FOR REVIEW
+----------------------------------------------------------------------------
+Billing intensity (units / claim volume per member-day)
+  1. Units per member-day above peers
+     On 1 member-day(s), units billed for one member were above the 99.5th
+     percentile of all provider/member/day groups in the same category of
+     service (peak 428 units).
+     Example claim line IDs (UNIQUE_KEY): 2410121041072308C, 2410121344653407C, 2410122341173911C, 2410124198571003C, 2410125786181210C
+  2. Claim lines per member-day above peers
+     On 1 member-day(s), the number of claim lines for one member was above
+     the 99.5th percentile of all provider/member/day/category-of-service
+     groups (peak 12 lines).
+     Example claim line IDs (UNIQUE_KEY): 2410121041072308C, 2410121344653407C, 2410122341173911C, 2410124198571003C, 2410125786181210C
+
+Outpatient facility pricing
+  3. Unusual outpatient facility encounters
+     Outpatient facility claims show 1 encounter(s) with facility payments
+     far above the typical encounter (more than 8 robust deviations above
+     the median; largest $2,806).
+     Example claim line IDs (UNIQUE_KEY): 2604032057218502C, 2604032699115304C, 2604035898251501C, 2604037872646005C, 2604038756159803C
+
+INVESTIGATOR NEXT STEPS
+----------------------------------------------------------------------------
+  - Look up the example lines by UNIQUE_KEY and confirm each pattern on the raw claims.
+  - Check the provider against the suspension list and prior SIU dispositions.
+
+  Basis: post-payment claims and billing data only. This is an analytic lead for
+  review, NOT a determination of fraud, intent, medical necessity or wrongdoing.
+  Source data: SYNTHETIC TEST DATA — illustrative of format, not real findings
+
+
+CASE LEAD [Moderate] — Billing Provider 337775  (VALLEY BEHAVIORAL HEALTH)
+============================================================================
+Provider type     : HOSPITAL
+Activity          : 31 paid claim lines billed | 11 members | last service 2026-05-20
+Total paid (role) : $7,730
+Independent grounds: 2 — Billing intensity (units / claim volume per member-day); Outpatient facility pricing
+Breadth           : 2 members, 2 member-days in flagged claims
+$ in flagged claims: $4,512 (58% of this provider's paid $ in this role; 20 distinct claim lines, each counted once)
+
+WHY THIS PROVIDER IS FLAGGED FOR REVIEW
+----------------------------------------------------------------------------
+Billing intensity (units / claim volume per member-day)
+  1. Units per member-day above peers
+     On 1 member-day(s), units billed for one member were above the 99.5th
+     percentile of all provider/member/day groups in the same category of
+     service (peak 260 units).
+     Example claim line IDs (UNIQUE_KEY): 2507181425396802C, 2507181500225711C, 2507182502373501C, 2507182527006508C, 2507185130011306C
+  2. Claim lines per member-day above peers
+     On 1 member-day(s), the number of claim lines for one member was above
+     the 99.5th percentile of all provider/member/day/category-of-service
+     groups (peak 12 lines).
+     Example claim line IDs (UNIQUE_KEY): 2507181425396802C, 2507181500225711C, 2507182502373501C, 2507182527006508C, 2507185130011306C
+
+Outpatient facility pricing
+  3. Unusual outpatient facility encounters
+     Outpatient facility claims show 1 encounter(s) with facility payments
+     far above the typical encounter (more than 8 robust deviations above
+     the median; largest $3,610).
+     Example claim line IDs (UNIQUE_KEY): 2508261086314905C, 2508261454195201C, 2508262646264003C, 2508265548855102C, 2508266148009007C
+
+INVESTIGATOR NEXT STEPS
+----------------------------------------------------------------------------
+  - Look up the example lines by UNIQUE_KEY and confirm each pattern on the raw claims.
+  - Check the provider against the suspension list and prior SIU dispositions.
+
+  Basis: post-payment claims and billing data only. This is an analytic lead for
+  review, NOT a determination of fraud, intent, medical necessity or wrongdoing.
+  Source data: SYNTHETIC TEST DATA — illustrative of format, not real findings
+
+
+CASE LEAD [Moderate] — Billing Provider 947920  (MOUNTAIN SERVICES)
+============================================================================
+Provider type     : CLINIC
+Activity          : 54 paid claim lines billed | 22 members | last service 2026-08-30
+Total paid (role) : $12,519
+Independent grounds: 2 — Outpatient facility pricing; Billing intensity (units / claim volume per member-day)
+Breadth           : 3 members, 3 member-days in flagged claims
+$ in flagged claims: $7,053 (56% of this provider's paid $ in this role; 27 distinct claim lines, each counted once)
+
+WHY THIS PROVIDER IS FLAGGED FOR REVIEW
+----------------------------------------------------------------------------
+Outpatient facility pricing
+  1. Unusual outpatient facility encounters
+     Outpatient facility claims show 2 encounter(s) with facility payments
+     far above the typical encounter (more than 8 robust deviations above
+     the median; largest $3,281).
+     Example claim line IDs (UNIQUE_KEY): 2601221589347408C, 2601224856969701C, 2601224990011902C, 2601225133533606C, 2601225160507607C
+
+Billing intensity (units / claim volume per member-day)
+  2. Claim lines per member-day above peers
+     On 1 member-day(s), the number of claim lines for one member was above
+     the 99.5th percentile of all provider/member/day/category-of-service
+     groups (peak 11 lines).
+     Example claim line IDs (UNIQUE_KEY): 2503031119100806C, 2503031781207208C, 2503032086778301C, 2503032627432010C, 2503033260548303C
+
+INVESTIGATOR NEXT STEPS
+----------------------------------------------------------------------------
+  - Look up the example lines by UNIQUE_KEY and confirm each pattern on the raw claims.
+  - Check the provider against the suspension list and prior SIU dispositions.
+
+  Basis: post-payment claims and billing data only. This is an analytic lead for
+  review, NOT a determination of fraud, intent, medical necessity or wrongdoing.
+  Source data: SYNTHETIC TEST DATA — illustrative of format, not real findings
+
+
+CASE LEAD [Moderate] — Billing Provider 942526  (DESERT SERVICES)
+============================================================================
+Provider type     : CLINIC
+Activity          : 87 paid claim lines billed | 36 members | last service 2026-08-29
+Total paid (role) : $14,225
+Independent grounds: 2 — Outpatient facility pricing; Billing intensity (units / claim volume per member-day)
+Breadth           : 3 members, 3 member-days in flagged claims
+$ in flagged claims: $6,635 (47% of this provider's paid $ in this role; 25 distinct claim lines, each counted once)
+
+WHY THIS PROVIDER IS FLAGGED FOR REVIEW
+----------------------------------------------------------------------------
+Outpatient facility pricing
+  1. Unusual outpatient facility encounters
+     Outpatient facility claims show 2 encounter(s) with facility payments
+     far above the typical encounter (more than 8 robust deviations above
+     the median; largest $3,496).
+     Example claim line IDs (UNIQUE_KEY): 2412091245393408C, 2412091518488001C, 2412092758427802C, 2412093496158907C, 2412094672914005C
+
+Billing intensity (units / claim volume per member-day)
+  2. Claim lines per member-day above peers
+     On 1 member-day(s), the number of claim lines for one member was above
+     the 99.5th percentile of all provider/member/day/category-of-service
+     groups (peak 11 lines).
+     Example claim line IDs (UNIQUE_KEY): 2412121686644405C, 2412122068670308C, 2412122369157004C, 2412122940509207C, 2412123009788206C
+
+INVESTIGATOR NEXT STEPS
+----------------------------------------------------------------------------
+  - Look up the example lines by UNIQUE_KEY and confirm each pattern on the raw claims.
+  - Check the provider against the suspension list and prior SIU dispositions.
+
+  Basis: post-payment claims and billing data only. This is an analytic lead for
+  review, NOT a determination of fraud, intent, medical necessity or wrongdoing.
+  Source data: SYNTHETIC TEST DATA — illustrative of format, not real findings
+
+
+CASE LEAD [Moderate] — Billing Provider 863846  (VALLEY HEALTH CENTER)
+============================================================================
+Provider type     : HOSPITAL
+Activity          : 28 paid claim lines billed | 11 members | last service 2026-08-05
+Total paid (role) : $7,011
+Independent grounds: 2 — Billing intensity (units / claim volume per member-day); Outpatient facility pricing
+Breadth           : 2 members, 2 member-days in flagged claims
+$ in flagged claims: $3,174 (45% of this provider's paid $ in this role; 16 distinct claim lines, each counted once)
+
+WHY THIS PROVIDER IS FLAGGED FOR REVIEW
+----------------------------------------------------------------------------
+Billing intensity (units / claim volume per member-day)
+  1. Units per member-day above peers
+     On 1 member-day(s), units billed for one member were above the 99.5th
+     percentile of all provider/member/day groups in the same category of
+     service (peak 261 units).
+     Example claim line IDs (UNIQUE_KEY): 2412312326758710C, 2412312445433708C, 2412312518644704C, 2412313595664611C, 2412314115782103C
+  2. Claim lines per member-day above peers
+     On 1 member-day(s), the number of claim lines for one member was above
+     the 99.5th percentile of all provider/member/day/category-of-service
+     groups (peak 11 lines).
+     Example claim line IDs (UNIQUE_KEY): 2412312326758710C, 2412312445433708C, 2412312518644704C, 2412313595664611C, 2412314115782103C
+
+Outpatient facility pricing
+  3. Unusual outpatient facility encounters
+     Outpatient facility claims show 1 encounter(s) with facility payments
+     far above the typical encounter (more than 8 robust deviations above
+     the median; largest $2,333).
+     Example claim line IDs (UNIQUE_KEY): 2410091032627005C, 2410091568845404C, 2410092246276703C, 2410092286222702C, 2410098762596201C
+
+INVESTIGATOR NEXT STEPS
+----------------------------------------------------------------------------
+  - Look up the example lines by UNIQUE_KEY and confirm each pattern on the raw claims.
+  - Check the provider against the suspension list and prior SIU dispositions.
+
+  Basis: post-payment claims and billing data only. This is an analytic lead for
+  review, NOT a determination of fraud, intent, medical necessity or wrongdoing.
+  Source data: SYNTHETIC TEST DATA — illustrative of format, not real findings
+
+
+CASE LEAD [Moderate] — Billing Provider 821002  (HORIZON CLINIC)
+============================================================================
+Provider type     : HOSPITAL
+Activity          : 24 paid claim lines billed | 10 members | last service 2026-07-13
+Total paid (role) : $8,151
+Independent grounds: 2 — Outpatient facility pricing; Billing intensity (units / claim volume per member-day)
+Breadth           : 2 members, 2 member-days in flagged claims
+$ in flagged claims: $5,374 (66% of this provider's paid $ in this role; 16 distinct claim lines, each counted once)
+
+WHY THIS PROVIDER IS FLAGGED FOR REVIEW
+----------------------------------------------------------------------------
+Outpatient facility pricing
+  1. Unusual outpatient facility encounters
+     Outpatient facility claims show 1 encounter(s) with facility payments
+     far above the typical encounter (more than 8 robust deviations above
+     the median; largest $3,667).
+     Example claim line IDs (UNIQUE_KEY): 2511211044387402C, 2511212134574506C, 2511212737632507C, 2511215168858908C, 2511215894980205C
+
+Billing intensity (units / claim volume per member-day)
+  2. Units per member-day above peers
+     On 1 member-day(s), units billed for one member were above the 99.5th
+     percentile of all provider/member/day groups in the same category of
+     service (peak 49 units).
+     Example claim line IDs (UNIQUE_KEY): 2510031572859707C, 2510032933805306C, 2510033494126004C, 2510035857218803C, 2510036744322005C
+
+INVESTIGATOR NEXT STEPS
+----------------------------------------------------------------------------
+  - Look up the example lines by UNIQUE_KEY and confirm each pattern on the raw claims.
+  - Check the provider against the suspension list and prior SIU dispositions.
+
+  Basis: post-payment claims and billing data only. This is an analytic lead for
+  review, NOT a determination of fraud, intent, medical necessity or wrongdoing.
+  Source data: SYNTHETIC TEST DATA — illustrative of format, not real findings
+
+
+CASE LEAD [Moderate] — Billing Provider 728813  (VALLEY PHARMACY)
+============================================================================
+Provider type     : HOSPITAL
+Activity          : 37 paid claim lines billed | 9 members | last service 2026-08-30
+Total paid (role) : $12,725
+Independent grounds: 2 — Outpatient facility pricing; Billing intensity (units / claim volume per member-day)
+Breadth           : 3 members, 3 member-days in flagged claims
+$ in flagged claims: $6,312 (50% of this provider's paid $ in this role; 23 distinct claim lines, each counted once)
+
+WHY THIS PROVIDER IS FLAGGED FOR REVIEW
+----------------------------------------------------------------------------
+Outpatient facility pricing
+  1. Unusual outpatient facility encounters
+     Outpatient facility claims show 2 encounter(s) with facility payments
+     far above the typical encounter (more than 8 robust deviations above
+     the median; largest $3,176).
+     Example claim line IDs (UNIQUE_KEY): 2603192217129806C, 2603193473597001C, 2603194824561704C, 2603195096440102C, 2603195263154005C
+
+Billing intensity (units / claim volume per member-day)
+  2. Claim lines per member-day above peers
+     On 1 member-day(s), the number of claim lines for one member was above
+     the 99.5th percentile of all provider/member/day/category-of-service
+     groups (peak 11 lines).
+     Example claim line IDs (UNIQUE_KEY): 2608162425723506C, 2608163298993810C, 2608163496175012C, 2608163715337811C, 2608165559706408C
+
+INVESTIGATOR NEXT STEPS
+----------------------------------------------------------------------------
+  - Look up the example lines by UNIQUE_KEY and confirm each pattern on the raw claims.
+  - Check the provider against the suspension list and prior SIU dispositions.
+
+  Basis: post-payment claims and billing data only. This is an analytic lead for
+  review, NOT a determination of fraud, intent, medical necessity or wrongdoing.
+  Source data: SYNTHETIC TEST DATA — illustrative of format, not real findings
+
+
+CASE LEAD [Moderate] — Billing Provider 897196  (MOUNTAIN HEALTH CENTER)
+============================================================================
+Provider type     : SCHOOL BASED BUS TRANSPORTATION
+Activity          : 35 paid claim lines billed | 15 members | last service 2026-06-28
+Total paid (role) : $5,134
+Independent grounds: 2 — Billing intensity (units / claim volume per member-day); Outpatient facility pricing
+Breadth           : 2 members, 2 member-days in flagged claims
+$ in flagged claims: $4,459 (87% of this provider's paid $ in this role; 20 distinct claim lines, each counted once)
+
+WHY THIS PROVIDER IS FLAGGED FOR REVIEW
+----------------------------------------------------------------------------
+Billing intensity (units / claim volume per member-day)
+  1. Units per member-day above peers
+     On 1 member-day(s), units billed for one member were above the 99.5th
+     percentile of all provider/member/day groups in the same category of
+     service (peak 15 units).
+     Example claim line IDs (UNIQUE_KEY): 2512181907918510C, 2512184442774503C, 2512185662791108C, 2512187168793111C, 2512187291873707C
+  2. Claim lines per member-day above peers
+     On 1 member-day(s), the number of claim lines for one member was above
+     the 99.5th percentile of all provider/member/day/category-of-service
+     groups (peak 12 lines).
+     Example claim line IDs (UNIQUE_KEY): 2512181907918510C, 2512184442774503C, 2512185662791108C, 2512187168793111C, 2512187291873707C
+
+Outpatient facility pricing
+  3. Unusual outpatient facility encounters
+     Outpatient facility claims show 1 encounter(s) with facility payments
+     far above the typical encounter (more than 8 robust deviations above
+     the median; largest $3,793).
+     Example claim line IDs (UNIQUE_KEY): 2505274147704602C, 2505275485784404C, 2505275683863005C, 2505275773593508C, 2505277758010806C
+
+INVESTIGATOR NEXT STEPS
+----------------------------------------------------------------------------
+  - Look up the example lines by UNIQUE_KEY and confirm each pattern on the raw claims.
+  - Check the provider against the suspension list and prior SIU dispositions.
+
+  Basis: post-payment claims and billing data only. This is an analytic lead for
+  review, NOT a determination of fraud, intent, medical necessity or wrongdoing.
+  Source data: SYNTHETIC TEST DATA — illustrative of format, not real findings
+
+
+CASE LEAD [Moderate] — Billing Provider 619089  (MOUNTAIN HEALTH CENTER)
+============================================================================
+Provider type     : HOSPITAL
+Activity          : 28 paid claim lines billed | 12 members | last service 2026-05-22
+Total paid (role) : $9,036
+Independent grounds: 2 — Outpatient facility pricing; Billing intensity (units / claim volume per member-day)
+Breadth           : 2 members, 2 member-days in flagged claims
+$ in flagged claims: $3,328 (37% of this provider's paid $ in this role; 8 distinct claim lines, each counted once)
+
+WHY THIS PROVIDER IS FLAGGED FOR REVIEW
+----------------------------------------------------------------------------
+Outpatient facility pricing
+  1. Unusual outpatient facility encounters
+     Outpatient facility claims show 1 encounter(s) with facility payments
+     far above the typical encounter (more than 8 robust deviations above
+     the median; largest $2,891).
+     Example claim line IDs (UNIQUE_KEY): 2412162396361305C, 2412163529313404C, 2412163728523407C, 2412166538004002C, 2412166967738508C
+
+Billing intensity (units / claim volume per member-day)
+  2. Units per member-day above peers
+     On 1 member-day(s), units billed for one member were above the 99.5th
+     percentile of all provider/member/day groups in the same category of
+     service (peak 20 units).
+     Example claim line IDs (UNIQUE_KEY): 2412051364723001C
+
+INVESTIGATOR NEXT STEPS
+----------------------------------------------------------------------------
+  - Look up the example lines by UNIQUE_KEY and confirm each pattern on the raw claims.
+  - Check the provider against the suspension list and prior SIU dispositions.
+
+  Basis: post-payment claims and billing data only. This is an analytic lead for
+  review, NOT a determination of fraud, intent, medical necessity or wrongdoing.
+  Source data: SYNTHETIC TEST DATA — illustrative of format, not real findings
+
+
+CASE LEAD [Moderate] — Billing Provider 317605  (COMMUNITY FAMILY HEALTH)
+============================================================================
+Provider type     : HOSPITAL
+Activity          : 31 paid claim lines billed | 13 members | last service 2026-08-12
+Total paid (role) : $6,564
+Independent grounds: 2 — Outpatient facility pricing; Billing intensity (units / claim volume per member-day)
+Breadth           : 2 members, 2 member-days in flagged claims
+$ in flagged claims: $2,686 (41% of this provider's paid $ in this role; 12 distinct claim lines, each counted once)
+
+WHY THIS PROVIDER IS FLAGGED FOR REVIEW
+----------------------------------------------------------------------------
+Outpatient facility pricing
+  1. Unusual outpatient facility encounters
+     Outpatient facility claims show 1 encounter(s) with facility payments
+     far above the typical encounter (more than 8 robust deviations above
+     the median; largest $2,581).
+     Example claim line IDs (UNIQUE_KEY): 2410011425206805C, 2410012043330003C, 2410014543364104C, 2410018183314802C, 2410018567306901C
+
+Billing intensity (units / claim volume per member-day)
+  2. Units per member-day above peers
+     On 1 member-day(s), units billed for one member were above the 99.5th
+     percentile of all provider/member/day groups in the same category of
+     service (peak 21 units).
+     Example claim line IDs (UNIQUE_KEY): 2606151678312603C, 2606153062426006C, 2606154331252405C, 2606157231742502C, 2606157356541704C
+
+INVESTIGATOR NEXT STEPS
+----------------------------------------------------------------------------
+  - Look up the example lines by UNIQUE_KEY and confirm each pattern on the raw claims.
+  - Check the provider against the suspension list and prior SIU dispositions.
+
+  Basis: post-payment claims and billing data only. This is an analytic lead for
+  review, NOT a determination of fraud, intent, medical necessity or wrongdoing.
+  Source data: SYNTHETIC TEST DATA — illustrative of format, not real findings
+
+
+CASE LEAD [Moderate] — Billing Provider 997140  (DESERT MEDICAL GROUP)
+============================================================================
+Provider type     : CLINIC
+Activity          : 39 paid claim lines billed | 25 members | last service 2026-08-25
+Total paid (role) : $8,266
+Independent grounds: 2 — Outpatient facility pricing; Billing intensity (units / claim volume per member-day)
+Breadth           : 2 members, 2 member-days in flagged claims
+$ in flagged claims: $3,374 (41% of this provider's paid $ in this role; 8 distinct claim lines, each counted once)
+
+WHY THIS PROVIDER IS FLAGGED FOR REVIEW
+----------------------------------------------------------------------------
+Outpatient facility pricing
+  1. Unusual outpatient facility encounters
+     Outpatient facility claims show 1 encounter(s) with facility payments
+     far above the typical encounter (more than 8 robust deviations above
+     the median; largest $2,435).
+     Example claim line IDs (UNIQUE_KEY): 2608254858645406C, 2608255958724202C, 2608256759268301C, 2608258773023605C, 2608259250692603C
+
+Billing intensity (units / claim volume per member-day)
+  2. Units per member-day above peers
+     On 1 member-day(s), units billed for one member were above the 99.5th
+     percentile of all provider/member/day groups in the same category of
+     service (peak 22 units).
+     Example claim line IDs (UNIQUE_KEY): 2508276820009101C, 2508279472041202C
+
+INVESTIGATOR NEXT STEPS
+----------------------------------------------------------------------------
+  - Look up the example lines by UNIQUE_KEY and confirm each pattern on the raw claims.
+  - Check the provider against the suspension list and prior SIU dispositions.
+
+  Basis: post-payment claims and billing data only. This is an analytic lead for
+  review, NOT a determination of fraud, intent, medical necessity or wrongdoing.
+  Source data: SYNTHETIC TEST DATA — illustrative of format, not real findings
+
+
+CASE LEAD [Moderate] — Billing Provider 31359  (RIVER FAMILY HEALTH)
+============================================================================
+Provider type     : CLINIC
+Activity          : 79 paid claim lines billed | 32 members | last service 2026-08-08
+Total paid (role) : $11,457
+Independent grounds: 2 — Billing intensity (units / claim volume per member-day); Outpatient facility pricing
+Breadth           : 2 members, 2 member-days in flagged claims
+$ in flagged claims: $3,441 (30% of this provider's paid $ in this role; 18 distinct claim lines, each counted once)
+
+WHY THIS PROVIDER IS FLAGGED FOR REVIEW
+----------------------------------------------------------------------------
+Billing intensity (units / claim volume per member-day)
+  1. Units per member-day above peers
+     On 1 member-day(s), units billed for one member were above the 99.5th
+     percentile of all provider/member/day groups in the same category of
+     service (peak 23 units).
+     Example claim line IDs (UNIQUE_KEY): 2603081010267210C, 2603081135858411C, 2603081459683105C, 2603081905651109C, 2603082143766901C
+  2. Claim lines per member-day above peers
+     On 1 member-day(s), the number of claim lines for one member was above
+     the 99.5th percentile of all provider/member/day/category-of-service
+     groups (peak 12 lines).
+     Example claim line IDs (UNIQUE_KEY): 2603081010267210C, 2603081135858411C, 2603081459683105C, 2603081905651109C, 2603082143766901C
+
+Outpatient facility pricing
+  3. Unusual outpatient facility encounters
+     Outpatient facility claims show 1 encounter(s) with facility payments
+     far above the typical encounter (more than 8 robust deviations above
+     the median; largest $2,285).
+     Example claim line IDs (UNIQUE_KEY): 2605011237481303C, 2605013207606504C, 2605014489762201C, 2605015473257206C, 2605018931504205C
+
+INVESTIGATOR NEXT STEPS
+----------------------------------------------------------------------------
+  - Look up the example lines by UNIQUE_KEY and confirm each pattern on the raw claims.
+  - Check the provider against the suspension list and prior SIU dispositions.
+
+  Basis: post-payment claims and billing data only. This is an analytic lead for
+  review, NOT a determination of fraud, intent, medical necessity or wrongdoing.
+  Source data: SYNTHETIC TEST DATA — illustrative of format, not real findings
+
+
+CASE LEAD [Moderate] — Billing Provider 994592  (NORTHSTAR CLINIC)
+============================================================================
+Provider type     : CLINIC
+Activity          : 42 paid claim lines billed | 22 members | last service 2026-07-04
+Total paid (role) : $6,723
+Independent grounds: 2 — Billing intensity (units / claim volume per member-day); Outpatient facility pricing
+Breadth           : 2 members, 2 member-days in flagged claims
+$ in flagged claims: $3,839 (57% of this provider's paid $ in this role; 18 distinct claim lines, each counted once)
+
+WHY THIS PROVIDER IS FLAGGED FOR REVIEW
+----------------------------------------------------------------------------
+Billing intensity (units / claim volume per member-day)
+  1. Units per member-day above peers
+     On 1 member-day(s), units billed for one member were above the 99.5th
+     percentile of all provider/member/day groups in the same category of
+     service (peak 16 units).
+     Example claim line IDs (UNIQUE_KEY): 2505291197485411C, 2505291430548101C, 2505292424972104C, 2505295935497907C, 2505296745046109C
+  2. Claim lines per member-day above peers
+     On 1 member-day(s), the number of claim lines for one member was above
+     the 99.5th percentile of all provider/member/day/category-of-service
+     groups (peak 12 lines).
+     Example claim line IDs (UNIQUE_KEY): 2505291197485411C, 2505291430548101C, 2505292424972104C, 2505295935497907C, 2505296745046109C
+
+Outpatient facility pricing
+  3. Unusual outpatient facility encounters
+     Outpatient facility claims show 1 encounter(s) with facility payments
+     far above the typical encounter (more than 8 robust deviations above
+     the median; largest $2,793).
+     Example claim line IDs (UNIQUE_KEY): 2502011815071301C, 2502013168608104C, 2502015561806805C, 2502016546844906C, 2502018163996903C
+
+INVESTIGATOR NEXT STEPS
+----------------------------------------------------------------------------
+  - Look up the example lines by UNIQUE_KEY and confirm each pattern on the raw claims.
+  - Check the provider against the suspension list and prior SIU dispositions.
+
+  Basis: post-payment claims and billing data only. This is an analytic lead for
+  review, NOT a determination of fraud, intent, medical necessity or wrongdoing.
+  Source data: SYNTHETIC TEST DATA — illustrative of format, not real findings
+
+
+CASE LEAD [Moderate] — Billing Provider 166757  (NORTHSTAR HEALTH CENTER)
+============================================================================
+Provider type     : HOSPITAL
+Activity          : 28 paid claim lines billed | 10 members | last service 2026-08-19
+Total paid (role) : $6,371
+Independent grounds: 2 — Billing intensity (units / claim volume per member-day); Outpatient facility pricing
+Breadth           : 2 members, 2 member-days in flagged claims
+$ in flagged claims: $2,814 (44% of this provider's paid $ in this role; 16 distinct claim lines, each counted once)
+
+WHY THIS PROVIDER IS FLAGGED FOR REVIEW
+----------------------------------------------------------------------------
+Billing intensity (units / claim volume per member-day)
+  1. Units per member-day above peers
+     On 1 member-day(s), units billed for one member were above the 99.5th
+     percentile of all provider/member/day groups in the same category of
+     service (peak 17 units).
+     Example claim line IDs (UNIQUE_KEY): 2606041533774502C, 2606041926172406C, 2606042351941012C, 2606043721300303C, 2606044880530404C
+  2. Claim lines per member-day above peers
+     On 1 member-day(s), the number of claim lines for one member was above
+     the 99.5th percentile of all provider/member/day/category-of-service
+     groups (peak 11 lines).
+     Example claim line IDs (UNIQUE_KEY): 2606041533774502C, 2606041926172406C, 2606042351941012C, 2606043721300303C, 2606044880530404C
+
+Outpatient facility pricing
+  3. Unusual outpatient facility encounters
+     Outpatient facility claims show 1 encounter(s) with facility payments
+     far above the typical encounter (more than 8 robust deviations above
+     the median; largest $2,607).
+     Example claim line IDs (UNIQUE_KEY): 2412221118323702C, 2412221717384305C, 2412223221661303C, 2412223452128401C, 2412224133474004C
+
+INVESTIGATOR NEXT STEPS
+----------------------------------------------------------------------------
+  - Look up the example lines by UNIQUE_KEY and confirm each pattern on the raw claims.
+  - Check the provider against the suspension list and prior SIU dispositions.
+
+  Basis: post-payment claims and billing data only. This is an analytic lead for
+  review, NOT a determination of fraud, intent, medical necessity or wrongdoing.
+  Source data: SYNTHETIC TEST DATA — illustrative of format, not real findings
+
+
+CASE LEAD [Moderate] — Billing Provider 779251  (SUNRISE FAMILY HEALTH)
+============================================================================
+Provider type     : SCHOOL BASED BUS TRANSPORTATION
+Activity          : 23 paid claim lines billed | 8 members | last service 2026-06-26
+Total paid (role) : $3,198
+Independent grounds: 2 — Billing intensity (units / claim volume per member-day); Outpatient facility pricing
+Breadth           : 2 members, 2 member-days in flagged claims
+$ in flagged claims: $2,867 (90% of this provider's paid $ in this role; 17 distinct claim lines, each counted once)
+
+WHY THIS PROVIDER IS FLAGGED FOR REVIEW
+----------------------------------------------------------------------------
+Billing intensity (units / claim volume per member-day)
+  1. Units per member-day above peers
+     On 1 member-day(s), units billed for one member were above the 99.5th
+     percentile of all provider/member/day groups in the same category of
+     service (peak 16 units).
+     Example claim line IDs (UNIQUE_KEY): 2507301423960009C, 2507301489769310C, 2507302720943306C, 2507304025737308C, 2507304157975601C
+  2. Claim lines per member-day above peers
+     On 1 member-day(s), the number of claim lines for one member was above
+     the 99.5th percentile of all provider/member/day/category-of-service
+     groups (peak 11 lines).
+     Example claim line IDs (UNIQUE_KEY): 2507301423960009C, 2507301489769310C, 2507302720943306C, 2507304025737308C, 2507304157975601C
+
+Outpatient facility pricing
+  3. Unusual outpatient facility encounters
+     Outpatient facility claims show 1 encounter(s) with facility payments
+     far above the typical encounter (more than 8 robust deviations above
+     the median; largest $2,299).
+     Example claim line IDs (UNIQUE_KEY): 2409201494489503C, 2409201935695204C, 2409203086852602C, 2409204855728005C, 2409205061531601C
+
+INVESTIGATOR NEXT STEPS
+----------------------------------------------------------------------------
+  - Look up the example lines by UNIQUE_KEY and confirm each pattern on the raw claims.
+  - Check the provider against the suspension list and prior SIU dispositions.
+
+  Basis: post-payment claims and billing data only. This is an analytic lead for
+  review, NOT a determination of fraud, intent, medical necessity or wrongdoing.
+  Source data: SYNTHETIC TEST DATA — illustrative of format, not real findings
+
+
+CASE LEAD [Moderate] — Billing Provider 767956  (HORIZON CLINIC)
+============================================================================
+Provider type     : PHARMACY
+Activity          : 82 paid claim lines billed | 50 members | last service 2026-08-10
+Total paid (role) : $2,736
+Independent grounds: 2 — Billing intensity (units / claim volume per member-day); Members shared across unusually many billers
+Breadth           : 3 members, 3 member-days in flagged claims
+$ in flagged claims: $621 (23% of this provider's paid $ in this role; 13 distinct claim lines, each counted once)
+
+WHY THIS PROVIDER IS FLAGGED FOR REVIEW
+----------------------------------------------------------------------------
+Billing intensity (units / claim volume per member-day)
+  1. Units per member-day above peers
+     On 1 member-day(s), units billed for one member were above the 99.5th
+     percentile of all provider/member/day groups in the same category of
+     service (peak 578 units).
+     Example claim line IDs (UNIQUE_KEY): 2409181512116001C, 2409182388011111C, 2409182658815812C, 2409183275050005C, 2409184061488508C
+  2. Claim lines per member-day above peers
+     On 1 member-day(s), the number of claim lines for one member was above
+     the 99.5th percentile of all provider/member/day/category-of-service
+     groups (peak 11 lines).
+     Example claim line IDs (UNIQUE_KEY): 2409181512116001C, 2409182388011111C, 2409182658815812C, 2409183275050005C, 2409184061488508C
+
+Members shared across unusually many billers
+  3. Members seen by unusually many billers
+     Billed for 2 member(s) who each received services from an unusually
+     large number of different billing providers (up to 9), above the
+     99.5th percentile of all members. This pattern is consistent with
+     patient brokering but also occurs with members who have complex care
+     needs.
+     Example claim line IDs (UNIQUE_KEY): 2502205029176001C, 2411066079574001C
+
+INVESTIGATOR NEXT STEPS
+----------------------------------------------------------------------------
+  - Look up the example lines by UNIQUE_KEY and confirm each pattern on the raw claims.
+  - R4: check whether the shared members have complex care needs (a legitimate cause).
+  - Check the provider against the suspension list and prior SIU dispositions.
+
+  Basis: post-payment claims and billing data only. This is an analytic lead for
+  review, NOT a determination of fraud, intent, medical necessity or wrongdoing.
+  Source data: SYNTHETIC TEST DATA — illustrative of format, not real findings
+
+
+CASE LEAD [Moderate] — Billing Provider 154008  (MOUNTAIN BEHAVIORAL HEALTH)
+============================================================================
+Provider type     : CLINIC
+Activity          : 49 paid claim lines billed | 21 members | last service 2026-08-25
+Total paid (role) : $7,466
+Independent grounds: 2 — Billing intensity (units / claim volume per member-day); Outpatient facility pricing
+Breadth           : 2 members, 2 member-days in flagged claims
+$ in flagged claims: $4,034 (54% of this provider's paid $ in this role; 19 distinct claim lines, each counted once)
+
+WHY THIS PROVIDER IS FLAGGED FOR REVIEW
+----------------------------------------------------------------------------
+Billing intensity (units / claim volume per member-day)
+  1. Units per member-day above peers
+     On 1 member-day(s), units billed for one member were above the 99.5th
+     percentile of all provider/member/day groups in the same category of
+     service (peak 15 units).
+     Example claim line IDs (UNIQUE_KEY): 2509152358116111C, 2509154393024607C, 2509155036097506C, 2509155038316401C, 2509155827858705C
+  2. Claim lines per member-day above peers
+     On 1 member-day(s), the number of claim lines for one member was above
+     the 99.5th percentile of all provider/member/day/category-of-service
+     groups (peak 12 lines).
+     Example claim line IDs (UNIQUE_KEY): 2509152358116111C, 2509154393024607C, 2509155036097506C, 2509155038316401C, 2509155827858705C
+
+Outpatient facility pricing
+  3. Unusual outpatient facility encounters
+     Outpatient facility claims show 1 encounter(s) with facility payments
+     far above the typical encounter (more than 8 robust deviations above
+     the median; largest $3,173).
+     Example claim line IDs (UNIQUE_KEY): 2505151164667706C, 2505153585545105C, 2505153997060904C, 2505155242776603C, 2505155871471402C
+
+INVESTIGATOR NEXT STEPS
+----------------------------------------------------------------------------
+  - Look up the example lines by UNIQUE_KEY and confirm each pattern on the raw claims.
+  - Check the provider against the suspension list and prior SIU dispositions.
+
+  Basis: post-payment claims and billing data only. This is an analytic lead for
+  review, NOT a determination of fraud, intent, medical necessity or wrongdoing.
+  Source data: SYNTHETIC TEST DATA — illustrative of format, not real findings
+
+
+CASE LEAD [Moderate] — Billing Provider 765964  (HORIZON FAMILY HEALTH)
+============================================================================
+Provider type     : CLINIC
+Activity          : 52 paid claim lines billed | 26 members | last service 2026-07-15
+Total paid (role) : $9,244
+Independent grounds: 2 — Billing intensity (units / claim volume per member-day); Outpatient facility pricing
+Breadth           : 2 members, 2 member-days in flagged claims
+$ in flagged claims: $3,440 (37% of this provider's paid $ in this role; 15 distinct claim lines, each counted once)
+
+WHY THIS PROVIDER IS FLAGGED FOR REVIEW
+----------------------------------------------------------------------------
+Billing intensity (units / claim volume per member-day)
+  1. Units per member-day above peers
+     On 1 member-day(s), units billed for one member were above the 99.5th
+     percentile of all provider/member/day groups in the same category of
+     service (peak 35 units).
+     Example claim line IDs (UNIQUE_KEY): 2411231712184005C, 2411232052990602C, 2411232650934904C, 2411237845437501C, 2411238186484107C
+
+Outpatient facility pricing
+  2. Unusual outpatient facility encounters
+     Outpatient facility claims show 1 encounter(s) with facility payments
+     far above the typical encounter (more than 8 robust deviations above
+     the median; largest $2,856).
+     Example claim line IDs (UNIQUE_KEY): 2410151184857508C, 2410153328291105C, 2410154147559602C, 2410154952711107C, 2410159046906304C
+
+INVESTIGATOR NEXT STEPS
+----------------------------------------------------------------------------
+  - Look up the example lines by UNIQUE_KEY and confirm each pattern on the raw claims.
+  - Check the provider against the suspension list and prior SIU dispositions.
+
+  Basis: post-payment claims and billing data only. This is an analytic lead for
+  review, NOT a determination of fraud, intent, medical necessity or wrongdoing.
+  Source data: SYNTHETIC TEST DATA — illustrative of format, not real findings
+
+
+CASE LEAD [Moderate] — Billing Provider 933535  (RIVER SERVICES)
+============================================================================
+Provider type     : CLINIC
+Activity          : 30 paid claim lines billed | 19 members | last service 2026-07-21
+Total paid (role) : $4,996
+Independent grounds: 2 — Outpatient facility pricing; Same procedure, member and date paid more than once
+Breadth           : 2 members, 2 member-days in flagged claims
+$ in flagged claims: $2,471 (49% of this provider's paid $ in this role; 6 distinct claim lines, each counted once)
+
+WHY THIS PROVIDER IS FLAGGED FOR REVIEW
+----------------------------------------------------------------------------
+Outpatient facility pricing
+  1. Unusual outpatient facility encounters
+     Outpatient facility claims show 1 encounter(s) with facility payments
+     far above the typical encounter (more than 8 robust deviations above
+     the median; largest $2,396).
+     Example claim line IDs (UNIQUE_KEY): 2601261427190505C, 2601261520029001C, 2601262409318702C, 2601263825464204C, 2601265362386203C
+
+Same procedure, member and date paid more than once
+  2. Same procedure, member and date also paid to another biller
+     On 1 occasion(s), a claim with the same member, procedure code, date
+     and units was paid to this provider and to at least one other billing
+     provider. This is a candidate for double billing, not proof: it can be
+     legitimate (for example, separate transport legs by different
+     vendors). Only this provider's own payments are counted; claims under
+     the MSP line of business are excluded.
+     Example claim line IDs (UNIQUE_KEY): 2503181633237601C
+
+INVESTIGATOR NEXT STEPS
+----------------------------------------------------------------------------
+  - Look up the example lines by UNIQUE_KEY and confirm each pattern on the raw claims.
+  - R9: confirm both payments went to different tax IDs and neither was later recouped.
+  - Check the provider against the suspension list and prior SIU dispositions.
+
+  Basis: post-payment claims and billing data only. This is an analytic lead for
+  review, NOT a determination of fraud, intent, medical necessity or wrongdoing.
+  Source data: SYNTHETIC TEST DATA — illustrative of format, not real findings
+
+
+CASE LEAD [Moderate] — Billing Provider 226016  (DESERT FAMILY HEALTH)
+============================================================================
+Provider type     : HOSPITAL
+Activity          : 33 paid claim lines billed | 16 members | last service 2026-08-29
+Total paid (role) : $8,024
+Independent grounds: 2 — Billing intensity (units / claim volume per member-day); Outpatient facility pricing
+Breadth           : 2 members, 2 member-days in flagged claims
+$ in flagged claims: $3,399 (42% of this provider's paid $ in this role; 16 distinct claim lines, each counted once)
+
+WHY THIS PROVIDER IS FLAGGED FOR REVIEW
+----------------------------------------------------------------------------
+Billing intensity (units / claim volume per member-day)
+  1. Claim lines per member-day above peers
+     On 1 member-day(s), the number of claim lines for one member was above
+     the 99.5th percentile of all provider/member/day/category-of-service
+     groups (peak 11 lines).
+     Example claim line IDs (UNIQUE_KEY): 2510171677657607C, 2510173580839601C, 2510173840854104C, 2510173950858210C, 2510174989896102C
+
+Outpatient facility pricing
+  2. Unusual outpatient facility encounters
+     Outpatient facility claims show 1 encounter(s) with facility payments
+     far above the typical encounter (more than 8 robust deviations above
+     the median; largest $2,644).
+     Example claim line IDs (UNIQUE_KEY): 2603061428093105C, 2603061493413103C, 2603065763036904C, 2603066183547602C, 2603066894545001C
+
+INVESTIGATOR NEXT STEPS
+----------------------------------------------------------------------------
+  - Look up the example lines by UNIQUE_KEY and confirm each pattern on the raw claims.
+  - Check the provider against the suspension list and prior SIU dispositions.
+
+  Basis: post-payment claims and billing data only. This is an analytic lead for
+  review, NOT a determination of fraud, intent, medical necessity or wrongdoing.
+  Source data: SYNTHETIC TEST DATA — illustrative of format, not real findings
+
+
+CASE LEAD [Moderate] — Billing Provider 340929  (CANYON FAMILY HEALTH)
+============================================================================
+Provider type     : PHARMACY
+Activity          : 59 paid claim lines billed | 39 members | last service 2026-08-09
+Total paid (role) : $2,514
+Independent grounds: 2 — Billing intensity (units / claim volume per member-day); Members shared across unusually many billers
+Breadth           : 3 members, 3 member-days in flagged claims
+$ in flagged claims: $945 (38% of this provider's paid $ in this role; 15 distinct claim lines, each counted once)
+
+WHY THIS PROVIDER IS FLAGGED FOR REVIEW
+----------------------------------------------------------------------------
+Billing intensity (units / claim volume per member-day)
+  1. Billed time above 24 hours in a day
+     On 1 day(s), the time this provider billed for a single member added
+     up to more than 24 hours (peak 28.0 hours: S5125 10.0h + T1019 18.0h).
+     Time is computed from units and each procedure's stated unit. On 1
+     day(s), 24 hours is exceeded only when different services are added
+     together or 'up to' units are counted at their maximum; this can
+     happen if several staff served the member at the same time, so these
+     days are not treated as an impossibility.
+     Example claim line IDs (UNIQUE_KEY): 2605253273136407C, 2605254447757105C, 2605256038979203C, 2605257062485201C, 2605257688236708C
+
+Members shared across unusually many billers
+  2. Members seen by unusually many billers
+     Billed for 2 member(s) who each received services from an unusually
+     large number of different billing providers (up to 9), above the
+     99.5th percentile of all members. This pattern is consistent with
+     patient brokering but also occurs with members who have complex care
+     needs.
+     Example claim line IDs (UNIQUE_KEY): 2607161286878602C, 2607163467978304C, 2607164795843305C, 2607166084784903C, 2607166328030206C
+
+INVESTIGATOR NEXT STEPS
+----------------------------------------------------------------------------
+  - Look up the example lines by UNIQUE_KEY and confirm each pattern on the raw claims.
+  - R1: check the service times and staff; >24h for one member in a day needs an
+    explanation such as several staff serving the member at the same time.
+  - R4: check whether the shared members have complex care needs (a legitimate cause).
+  - Check the provider against the suspension list and prior SIU dispositions.
+
+  Basis: post-payment claims and billing data only. This is an analytic lead for
+  review, NOT a determination of fraud, intent, medical necessity or wrongdoing.
+  Source data: SYNTHETIC TEST DATA — illustrative of format, not real findings
+
+
+CASE LEAD [Moderate] — Billing Provider 773350  (HORIZON HOSPITAL)
+============================================================================
+Also appears as   : COMMUNITY PHARMACY
+Provider type     : HOSPITAL
+Activity          : 39 paid claim lines billed | 20 members | last service 2026-08-26
+Total paid (role) : $9,310
+Independent grounds: 2 — Billing intensity (units / claim volume per member-day); Outpatient facility pricing
+Breadth           : 2 members, 2 member-days in flagged claims
+$ in flagged claims: $3,146 (34% of this provider's paid $ in this role; 16 distinct claim lines, each counted once)
+
+WHY THIS PROVIDER IS FLAGGED FOR REVIEW
+----------------------------------------------------------------------------
+Billing intensity (units / claim volume per member-day)
+  1. Claim lines per member-day above peers
+     On 1 member-day(s), the number of claim lines for one member was above
+     the 99.5th percentile of all provider/member/day/category-of-service
+     groups (peak 11 lines).
+     Example claim line IDs (UNIQUE_KEY): 2505051388880810C, 2505051649633202C, 2505054282503009C, 2505055165899205C, 2505055355452812C
+
+Outpatient facility pricing
+  2. Unusual outpatient facility encounters
+     Outpatient facility claims show 1 encounter(s) with facility payments
+     far above the typical encounter (more than 8 robust deviations above
+     the median; largest $2,309).
+     Example claim line IDs (UNIQUE_KEY): 2608262860747502C, 2608265678721305C, 2608266558135301C, 2608266616725803C, 2608269232550904C
+
+INVESTIGATOR NEXT STEPS
+----------------------------------------------------------------------------
+  - Look up the example lines by UNIQUE_KEY and confirm each pattern on the raw claims.
+  - Check the provider against the suspension list and prior SIU dispositions.
+
+  Basis: post-payment claims and billing data only. This is an analytic lead for
+  review, NOT a determination of fraud, intent, medical necessity or wrongdoing.
+  Source data: SYNTHETIC TEST DATA — illustrative of format, not real findings
+
+
+CASE LEAD [Moderate] — Billing Provider 262711  (SAGE MEDICAL GROUP)
+============================================================================
+Provider type     : PHARMACY
+Activity          : 41 paid claim lines billed | 23 members | last service 2026-07-27
+Total paid (role) : $1,221
+Independent grounds: 2 — Billing intensity (units / claim volume per member-day); Members shared across unusually many billers
+Breadth           : 3 members, 3 member-days in flagged claims
+$ in flagged claims: $385 (32% of this provider's paid $ in this role; 13 distinct claim lines, each counted once)
+
+WHY THIS PROVIDER IS FLAGGED FOR REVIEW
+----------------------------------------------------------------------------
+Billing intensity (units / claim volume per member-day)
+  1. Claim lines per member-day above peers
+     On 1 member-day(s), the number of claim lines for one member was above
+     the 99.5th percentile of all provider/member/day/category-of-service
+     groups (peak 11 lines).
+     Example claim line IDs (UNIQUE_KEY): 2412161659761012C, 2412162185860404C, 2412162343095111C, 2412164076101809C, 2412164281705405C
+
+Members shared across unusually many billers
+  2. Members seen by unusually many billers
+     Billed for 2 member(s) who each received services from an unusually
+     large number of different billing providers (up to 8), above the
+     99.5th percentile of all members. This pattern is consistent with
+     patient brokering but also occurs with members who have complex care
+     needs.
+     Example claim line IDs (UNIQUE_KEY): 2505278645384801C, 2409284503460401C
+
+INVESTIGATOR NEXT STEPS
+----------------------------------------------------------------------------
+  - Look up the example lines by UNIQUE_KEY and confirm each pattern on the raw claims.
+  - R4: check whether the shared members have complex care needs (a legitimate cause).
+  - Check the provider against the suspension list and prior SIU dispositions.
+
+  Basis: post-payment claims and billing data only. This is an analytic lead for
+  review, NOT a determination of fraud, intent, medical necessity or wrongdoing.
+  Source data: SYNTHETIC TEST DATA — illustrative of format, not real findings
+
+
+CASE LEAD [Moderate] — Billing Provider 191470  (SUNRISE HEALTH CENTER)
+============================================================================
+Provider type     : SCHOOL BASED BUS TRANSPORTATION
+Activity          : 50 paid claim lines billed | 22 members | last service 2026-08-12
+Total paid (role) : $4,619
+Independent grounds: 2 — Billing intensity (units / claim volume per member-day); Outpatient facility pricing
+Breadth           : 2 members, 2 member-days in flagged claims
+$ in flagged claims: $2,821 (61% of this provider's paid $ in this role; 15 distinct claim lines, each counted once)
+
+WHY THIS PROVIDER IS FLAGGED FOR REVIEW
+----------------------------------------------------------------------------
+Billing intensity (units / claim volume per member-day)
+  1. Claim lines per member-day above peers
+     On 1 member-day(s), the number of claim lines for one member was above
+     the 99.5th percentile of all provider/member/day/category-of-service
+     groups (peak 10 lines).
+     Example claim line IDs (UNIQUE_KEY): 2607102016722111C, 2607106387957210C, 2607107683588405C, 2607107886682004C, 2607108567696408C
+
+Outpatient facility pricing
+  2. Unusual outpatient facility encounters
+     Outpatient facility claims show 1 encounter(s) with facility payments
+     far above the typical encounter (more than 8 robust deviations above
+     the median; largest $2,315).
+     Example claim line IDs (UNIQUE_KEY): 2608121426725101C, 2608123401232704C, 2608126138957402C, 2608126794850505C, 2608129792539803C
+
+INVESTIGATOR NEXT STEPS
+----------------------------------------------------------------------------
+  - Look up the example lines by UNIQUE_KEY and confirm each pattern on the raw claims.
+  - Check the provider against the suspension list and prior SIU dispositions.
+
+  Basis: post-payment claims and billing data only. This is an analytic lead for
+  review, NOT a determination of fraud, intent, medical necessity or wrongdoing.
+  Source data: SYNTHETIC TEST DATA — illustrative of format, not real findings
