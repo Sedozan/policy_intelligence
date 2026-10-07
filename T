@@ -1,0 +1,37 @@
+Workbook 1 — lookalikes_004526_246427_multiwindow.xlsx (the screen)
+Sheet	Question it answers
+Criteria	What every term and threshold means. Read first; it's the glossary you hand SIU with the results.
+Calibration	Does the method actually catch the known case? Each check must say PASS for Noble in each window. A FAIL here invalidates everything else in the workbook.
+Servicing_Combined	Which clinicians behave like 004526? One row per clinician, already sorted: reference, then Both → Pattern only → Percentile only.
+Billing_Combined	Which agencies behave like 246427? Same structure, plus which matched clinicians they bill for.
+Pattern_Full / _1Y / _6M	The arithmetic behind the pattern match: days over 24 hours, self vs other-biller dollars and units, who the main other biller is. This is the evidence an investigator will want to see.
+Serv_Scored_ / Bill_Scored_**	Every provider in the cohort with all raw measures and percentile ranks — the denominator. Use it to check whether a flag means "unusual" or just "above a thin median".
+Signatures	Which measures defined the reference's profile in that window. Tells you what the screen was actually matching on.
+Exposure_Summary	Dollars on implausible time, grouped by trend. The scale-of-the-problem slide.
+Network_Links	Which clinician↔agency pairs connect the flagged providers. Where you look for a ring rather than individuals.
+Duplicates_Pairs	Which pairs of billing entities get paid for the same service? One row per pair with a dollar total. Start here for the duplicate question.
+Duplicates_RefPair	The 246427 × 004526 duplicates specifically — the colleague's original example.
+Duplicates_Detail	Line-level duplicates across the whole cohort, for pulling claims.
+Self_Listed_Servicing	Which agencies list themselves as the servicing provider — the "Alliance should never be the servicing provider" check.
+
+
+Workbook 2 — provider_004526_comprehensive_analysis.xlsx (one clinician)
+
+Sheet	Question it answers
+Overall_Full / _1Y / _6M	How does this clinician compare to peers overall, and is it getting worse or better across windows?
+All_Proc_Codes_*	Which specific codes drive the anomaly, with peer comparison per code.
+Anomalous_GT2x_*	The codes more than 2× the peer median — the short list.
+Billing_Entities_*	Who bills for this clinician, and how much of the volume runs through each. The split-billing picture.
+Entity_Daily_*	Daily hours and members broken out by biller — shows the self-billed days look normal while the agency-billed days don't.
+Entity_By_Code_*	Same split, per code.
+Patterns_*	Cookie-cutter billing: identical code/units repeated across different members.
+Cross_Biller_Dups_*	Services of this clinician paid to more than one billing entity.
+
+Workbook 3 — billing_provider_246427_comprehensive_analysis.xlsx (one agency)
+Sheet	Question it answers
+Servicing_Provs_*	Which clinicians bill through this agency, and at what volume per clinician.
+SProv_Daily_*	Per-clinician daily hours under this agency.
+Outlier_SProvs_*	Which of its clinicians are the outliers — is it one bad actor or the whole roster?
+SProv_By_Code_*	Clinician × code breakdown.
+Cross_Biller_Dups_*	This agency's services also paid to another entity.
+Self_Listed_*	How many of its lines name itself as the servicing provider, with dollars.
