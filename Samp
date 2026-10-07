@@ -1,0 +1,20 @@
+TIME_WINDOWS = [
+    ("Last 12 Months", "1Y", 12),
+    ("Last 6 Months",  "6M",  6),
+]
+MIN_ACTIVE_DAYS = {"1Y": 12, "6M": 8}
+
+def trend_label(r):
+    # [MERGE] a window counts as flagged if EITHER the percentile screen or the pattern test flagged it
+    st = {s: ("FLAG" if (r[f"status_{s}"] == "FLAG" or r.get(f"pattern_{s}", "")) else r[f"status_{s}"])
+          for s in SFX}
+    if "not run" in st.values():
+        return "Unclassified (window skipped)"
+    y, s = st["1Y"] == "FLAG", st["6M"] == "FLAG"
+    if y and s:
+        return "Persistent"
+    if s:
+        return "Emerging"
+    if st["6M"] == "inactive":
+        return "Historical - no recent billing"
+    return "Recently normalized"
