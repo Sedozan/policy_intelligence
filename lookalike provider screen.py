@@ -22,6 +22,23 @@
 #      ONE window only — the recovery lookback — never summed across windows.
 #   5. Servicing and billing exposure are the same dollars seen two ways.
 #      Never add them together.
+#
+# [MERGE] Added from the CaseScope lookalike notebook (everything above is unchanged):
+#   6. An ABSOLUTE pattern test runs next to the percentile screen. A clinician matches
+#      the reference pattern when, on >= MIN_IMPOSSIBLE_DAYS clinician-days, timed hours
+#      exceed 24 with another entity billing part of that day, AND other entities carry
+#      most of the dollars at much higher volume than the clinician's own self-billing
+#      (the Noble/Alliance split). Percentiles always flag someone; this test only flags
+#      what is physically impossible.
+#   7. Every provider shows match_basis: Both / Pattern only / Percentile only.
+#   8. Cross-biller duplicates (investigator request): same member + procedure + service
+#      date PAID to two or more billing entities. Reported from the recovery window only.
+#      Not the same as the "dup pattern" features, which mean identical code/units across
+#      different members (cookie-cutter).
+#   9. Agencies listing themselves as the servicing provider are counted (colleague's
+#      "Alliance should never be the servicing provider").
+#  10. Calibration: the reference clinician must match the pattern; the Calibration sheet
+#      shows each check per window.
 # =============================================================================
 
 from pyspark.sql import SparkSession
@@ -92,6 +109,18 @@ T1    = "exposure_tier1_over_24h"
 T2    = f"exposure_tier2_over_{CAP_HOURS}h"
 T2_PM = f"{T2}_per_month"
 
+# [MERGE] Absolute pattern test, duplicates and role check
+MIN_IMPOSSIBLE_DAYS    = 2      # clinician-days over 24h (with another biller) needed for a pattern match
+MIN_OTHER_BILLER_SHARE = 0.5    # share of the clinician's paid $ billed by other entities
+MIN_UNITS_RATIO        = 5.0    # other-biller timed units/day vs self-billed timed units/day
+COB_LOB_VALUES         = ["MSP"]  # duplicates under these lines of business are coordination of benefits
+                                  # (only applied if the table has a line_of_business column)
+DUP_DETAIL_ROWS        = 50000  # rows written to the Duplicates_Detail sheet
+WINDOW_ANCHOR          = "today"  # "today" (original behavior) or "data_end" (latest service date;
+                                  # use if claims lag so the 6-month window isn't half empty)
+FULL, CLOSE, IMP_ONLY  = "Full match", "Close match (no self-billing)", "Impossible days only"
+BILL_MATCH             = "Primary biller for a matched clinician"
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # LOAD & PREPARE (once)
@@ -134,8 +163,11 @@ df_base = (
     .withColumn("is_timed", F.col("unit_minutes").isNotNull() & ~is_group & single_day)
     .withColumn("timed_minutes",
                 F.when(F.col("is_timed"), F.col("qty") * F.col("unit_minutes")).otherwise(0.0))
+    # [MERGE] who billed the line: the clinician herself, or another entity
+    .withColumn("channel", F.when(F.col(BPROV_COL) == F.col(SPROV_COL), "self").otherwise("other"))
     .select(SPROV_COL, BPROV_COL, MEMBER_COL, PROC_COL, "srv_date", "month",
-            "paid", "is_timed", "timed_minutes", "billing_signature")
+            "paid", "is_timed", "timed_minutes", "billing_signature",
+            "qty", "channel")                                           # [MERGE] qty, channel
     .cache()
 )
 
@@ -143,7 +175,9 @@ df_base = (
 cday = (
     df_base.groupBy(SPROV_COL, "srv_date")
     .agg(F.sum("timed_minutes").alias("mins"),
-         F.countDistinct(MEMBER_COL).alias("members"))
+         F.countDistinct(MEMBER_COL).alias("members"),
+         # [MERGE] minutes billed that day by entities other than the clinician
+         F.sum(F.when(F.col("channel") == "other", F.col("timed_minutes")).otherwise(0.0)).alias("other_mins"))
     .withColumn("hours", F.col("mins") / 60)
     .withColumn("r_24",  F.when(F.col("mins") > 1440,
                                 (F.col("mins") - 1440) / F.col("mins")).otherwise(0.0))
@@ -167,12 +201,33 @@ lines_x = (
 print(f"Cohort (full history): {df_base.select(SPROV_COL).distinct().count()} servicing / "
       f"{df_base.select(BPROV_COL).distinct().count()} billing providers")
 
+# [MERGE] Wider scopes for the duplicate and role checks. df_base keeps only cohort SERVICING
+# lines, so it can't see a second biller whose servicing provider is outside the cohort, or an
+# agency that lists itself as the servicing provider.
+_src = spark.table(SERVICE_TABLE)
+_lob = [c for c in ["line_of_business"] if c in _src.columns]
+_src = (
+    _src.withColumn("srv_date", F.to_date(F.col(SRV_BEG_COL).cast("string"), "yyyyMMdd"))
+        .withColumn("qty",  F.col(QTY_COL).cast("double"))
+        .withColumn("paid", F.col(PMT_COL).cast("double"))
+        .withColumn(PROC_COL, F.upper(F.trim(F.col(PROC_COL))))
+        .select(SPROV_COL, BPROV_COL, MEMBER_COL, PROC_COL, "srv_date", "qty", "paid", *_lob)
+)
+_cohort_keys = df_base.select(MEMBER_COL, PROC_COL, "srv_date").distinct()
+dup_scope  = _src.join(_cohort_keys, [MEMBER_COL, PROC_COL, "srv_date"])      # every line sharing a cohort service
+role_scope = _src.join(df_base.select(BPROV_COL).distinct(), BPROV_COL)         # every line of a cohort biller
+
+# [MERGE] Window anchor: today (original) or the latest service date in the cohort
+ANCHOR_DATE = TODAY if WINDOW_ANCHOR == "today" else df_base.agg(F.max("srv_date")).first()[0]
+print(f"Windows anchored on {ANCHOR_DATE} ({WINDOW_ANCHOR}); latest cohort service date: "
+      f"{df_base.agg(F.max('srv_date')).first()[0]}")
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # HELPERS
 # ─────────────────────────────────────────────────────────────────────────────
 def cutoff_for(months):
-    return None if months is None else (TODAY - relativedelta(months=months)).isoformat()
+    return None if months is None else (ANCHOR_DATE - relativedelta(months=months)).isoformat()   # [MERGE] anchor
 
 def by_date(sdf, cutoff):
     return sdf if cutoff is None else sdf.filter(F.col("srv_date") >= F.lit(cutoff))
@@ -221,6 +276,98 @@ def pattern_features(d, KEY, unit_keys):
                     "pct_members_repeat_pkg", "avg_session_hours",
                     "top_proc_code", "top_code_paid_share")
     )
+
+
+# [MERGE] ── Absolute reference-pattern test (not a percentile) ───────────────────
+def pattern_table(dw, cw):
+    """One row per clinician: impossible days, the self vs other-biller split, and the
+    pattern label. Uses the same timed-minute definitions as the rest of the screen."""
+    imp = cw.groupBy(SPROV_COL).agg(
+        F.sum((F.col("mins") > 1440).cast("int")).alias("days_over_24h"),
+        F.sum(((F.col("mins") > 1440) & (F.col("other_mins") > 0)).cast("int"))
+         .alias("days_over_24h_with_other_biller"))
+    ch = dw.groupBy(SPROV_COL).agg(
+        F.sum(F.when(F.col("channel") == "self", F.col("paid")).otherwise(0.0)).alias("self_paid"),
+        F.sum(F.when(F.col("channel") == "other", F.col("paid")).otherwise(0.0)).alias("other_biller_paid"),
+        F.sum((F.col("channel") == "self").cast("int")).alias("self_lines"),
+        F.sum((F.col("channel") == "other").cast("int")).alias("other_biller_lines"),
+        F.countDistinct(F.when(F.col("channel") == "other", F.col(BPROV_COL))).alias("n_other_billers"))
+    tu = dw.filter("is_timed").groupBy(SPROV_COL).agg(
+        F.sum(F.when(F.col("channel") == "self", F.col("qty"))).alias("self_timed_units"),
+        F.countDistinct(F.when(F.col("channel") == "self", F.col("srv_date"))).alias("self_timed_days"),
+        F.sum(F.when(F.col("channel") == "other", F.col("qty"))).alias("other_timed_units"),
+        F.countDistinct(F.when(F.col("channel") == "other", F.col("srv_date"))).alias("other_timed_days"))
+    w = Window.partitionBy(SPROV_COL).orderBy(F.desc("pp"), BPROV_COL)
+    top = (dw.filter(F.col("channel") == "other").groupBy(SPROV_COL, BPROV_COL)
+             .agg(F.sum("paid").alias("pp"))
+             .withColumn("rk", F.row_number().over(w)).filter("rk = 1")
+             .select(SPROV_COL, F.col(BPROV_COL).alias("top_other_biller")))
+    p = ch.join(imp, SPROV_COL, "left").join(tu, SPROV_COL, "left").join(top, SPROV_COL, "left").toPandas()
+    for c in ["days_over_24h", "days_over_24h_with_other_biller", "self_timed_units", "self_timed_days",
+              "other_timed_units", "other_timed_days"]:
+        p[c] = p[c].fillna(0)
+    tot = p["self_paid"] + p["other_biller_paid"]
+    p["other_biller_share"] = np.where(tot > 0, p["other_biller_paid"] / tot.where(tot > 0, 1), np.nan)
+    p["self_timed_units_per_day"] = np.where(p["self_timed_days"] > 0,
+                                             p["self_timed_units"] / p["self_timed_days"].clip(lower=1), np.nan)
+    p["other_timed_units_per_day"] = np.where(p["other_timed_days"] > 0,
+                                              p["other_timed_units"] / p["other_timed_days"].clip(lower=1), np.nan)
+    p["units_ratio_other_vs_self"] = p["other_timed_units_per_day"] / p["self_timed_units_per_day"]
+    split  = (p["self_lines"] > 0) & (p["other_biller_lines"] > 0)
+    driven = (p["other_biller_share"] >= MIN_OTHER_BILLER_SHARE) & \
+             ((p["self_lines"] == 0) | (p["units_ratio_other_vs_self"] >= MIN_UNITS_RATIO))
+    imp_o  = p["days_over_24h_with_other_biller"] >= MIN_IMPOSSIBLE_DAYS
+    imp_a  = p["days_over_24h"] >= MIN_IMPOSSIBLE_DAYS
+    p["pattern"] = np.select([imp_o & split & driven, imp_o & driven, imp_a], [FULL, CLOSE, IMP_ONLY], default="")
+    return p
+
+
+# [MERGE] ── Cross-biller duplicates (investigator request) ───────────────────────
+def duplicate_groups(scope):
+    """Same member + procedure + service date PAID to two or more billing entities."""
+    elig = scope.filter(F.col("paid") > 0)
+    if COB_LOB_VALUES and "line_of_business" in scope.columns:
+        elig = elig.filter(F.col("line_of_business").isNull() |
+                           ~F.col("line_of_business").isin(COB_LOB_VALUES))
+    k = [MEMBER_COL, PROC_COL, "srv_date"]
+    per_b = elig.groupBy(*k, BPROV_COL).agg(
+        F.sum("paid").alias("b_paid"), F.sum("qty").alias("b_units"),
+        F.count(F.lit(1)).alias("b_lines"),
+        F.array_sort(F.collect_set(SPROV_COL)).alias("b_servicers"))
+    grp = (per_b.groupBy(*k).agg(
+                F.count(F.lit(1)).alias("n_billers"),
+                F.array_sort(F.collect_list(BPROV_COL)).alias("billers"),
+                F.array_sort(F.array_distinct(F.flatten(F.collect_list("b_servicers")))).alias("servicers"),
+                F.countDistinct("b_units").alias("n_unit_values"),
+                F.round(F.sum("b_paid"), 2).alias("paid_total"),
+                F.round(F.sum("b_paid") - F.max("b_paid"), 2).alias("possible_duplicate_paid"),
+                F.sum("b_lines").alias("lines"))
+             .filter(F.col("n_billers") >= 2)
+             .withColumn("same_units", F.col("n_unit_values") == 1))
+    return per_b, grp
+
+
+def duplicate_pairs(per_b, grp):
+    k = [MEMBER_COL, PROC_COL, "srv_date"]
+    pb = per_b.join(grp.select(*k, "same_units"), k)
+    a = pb.select(*k, "same_units", F.col(BPROV_COL).alias("biller_a"), F.col("b_paid").alias("paid_a"))
+    b = pb.select(*k, F.col(BPROV_COL).alias("biller_b"), F.col("b_paid").alias("paid_b"))
+    return (a.join(b, k).filter(F.col("biller_a") < F.col("biller_b"))
+             .groupBy("biller_a", "biller_b").agg(
+                 F.count(F.lit(1)).alias("dup_services"),
+                 F.sum(F.col("same_units").cast("int")).alias("dup_services_same_units"),
+                 F.countDistinct(MEMBER_COL).alias("members"),
+                 F.round(F.sum(F.least("paid_a", "paid_b")), 2).alias("possible_duplicate_paid"),
+                 F.round(F.sum(F.col("paid_a") + F.col("paid_b")), 2).alias("paid_by_both"))
+             .orderBy(F.desc("possible_duplicate_paid")))
+
+
+def duplicate_involvement(grp):
+    """Duplicate services each provider is part of, as a biller or as the servicing provider."""
+    return (grp.select(F.explode(F.array_distinct(F.concat("billers", "servicers"))).alias("prov"),
+                       "possible_duplicate_paid")
+               .groupBy("prov").agg(F.count(F.lit(1)).alias("dup_services_involved"),
+                                    F.round(F.sum("possible_duplicate_paid"), 2).alias("dup_paid_involved")))
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -349,6 +496,8 @@ LEVELS = {
 }
 scored     = {"serv": {}, "bill": {}}   # level -> suffix -> scored DataFrame
 signatures = []
+patterns      = {}                                  # [MERGE] suffix -> pattern table (pandas)
+pattern_label = {"serv": {}, "bill": {}}            # [MERGE] level -> suffix -> {provider: label}
 
 for label, sfx, months in TIME_WINDOWS:
     cut = cutoff_for(months)
@@ -357,6 +506,15 @@ for label, sfx, months in TIME_WINDOWS:
 
     serv_pd = build_servicing(dw, cw, lw)
     bill_pd = build_billing(dw, cw, lw, serv_pd, MIN_ACTIVE_DAYS[sfx])
+
+    # [MERGE] absolute pattern test (no activity floor: an impossible day needs no peer comparison)
+    pt = pattern_table(dw, cw)
+    patterns[sfx] = pt
+    hit = pt[pt["pattern"] != ""]
+    pattern_label["serv"][sfx] = dict(zip(hit[SPROV_COL], hit["pattern"]))
+    agencies = hit.loc[hit["pattern"].isin([FULL, CLOSE]) & hit["top_other_biller"].notna(), "top_other_biller"]
+    pattern_label["bill"][sfx] = {b: BILL_MATCH for b in agencies}
+    print(f"  pattern test: {hit['pattern'].value_counts().to_dict()} | agencies: {len(set(agencies))}")
 
     for lvl, tbl in (("serv", serv_pd), ("bill", bill_pd)):
         cfg = LEVELS[lvl]
@@ -389,6 +547,40 @@ rec = {"serv": recovery_table(SPROV_COL), "bill": recovery_table(BPROV_COL)}
 pairs_all = df_base.groupBy(BPROV_COL, SPROV_COL).agg(F.sum("paid").alias("pair_paid_all")).toPandas()
 pairs_rec = d_rec.groupBy(BPROV_COL, SPROV_COL).agg(F.sum("paid").alias("pair_paid_recovery")).toPandas()
 
+# [MERGE] Cross-biller duplicates — recovery window only, like every other dollar figure
+dup_per_b, dup_grp = duplicate_groups(by_date(dup_scope, rec_cut))
+dup_grp = dup_grp.cache()
+dup_pairs_pd = duplicate_pairs(dup_per_b, dup_grp).toPandas()
+dup_inv_pd   = duplicate_involvement(dup_grp).toPandas()
+_flat = lambda sdf: (sdf.withColumn("billers", F.concat_ws(", ", "billers"))
+                        .withColumn("servicers", F.concat_ws(", ", "servicers")))
+dup_detail_pd = _flat(dup_grp.orderBy(F.desc("possible_duplicate_paid")).limit(DUP_DETAIL_ROWS)).toPandas()
+_ref_pair = dup_grp.filter(F.array_contains("billers", REF_BILLING) &
+                           (F.array_contains("billers", REF_SERVICING) |
+                            F.array_contains("servicers", REF_SERVICING)))
+dup_ref_pd = _flat(_ref_pair.orderBy("srv_date")).toPandas()
+print(f"\nCross-biller duplicate services ({rec_label}): {len(dup_detail_pd):,} shown | "
+      f"{REF_BILLING} x {REF_SERVICING}: {len(dup_ref_pd):,} "
+      f"(same units: {int(dup_ref_pd['same_units'].sum()) if len(dup_ref_pd) else 0}, "
+      f"possible duplicate $ {dup_ref_pd['possible_duplicate_paid'].sum() if len(dup_ref_pd) else 0:,.2f})")
+
+# [MERGE] Entities that bill for other providers AND list themselves as the servicing provider
+role_pd = (
+    by_date(role_scope, rec_cut).groupBy(BPROV_COL).agg(
+        F.count(F.lit(1)).alias("lines"),
+        F.sum((F.col(SPROV_COL) != F.col(BPROV_COL)).cast("int")).alias("lines_for_other_providers"),
+        F.sum((F.col(SPROV_COL) == F.col(BPROV_COL)).cast("int")).alias("lines_listing_itself_as_servicing"),
+        F.round(F.sum(F.when(F.col(SPROV_COL) == F.col(BPROV_COL), F.col("paid")).otherwise(0.0)), 2)
+         .alias("paid_listing_itself_as_servicing"))
+    .filter((F.col("lines_for_other_providers") > 0) & (F.col("lines_listing_itself_as_servicing") > 0))
+    .withColumn("pct_lines_listing_itself", F.round(F.col("lines_listing_itself_as_servicing") / F.col("lines") * 100, 1))
+    .orderBy(F.desc("lines_listing_itself_as_servicing"))
+    .toPandas()
+)
+_ref_role = role_pd[role_pd[BPROV_COL] == REF_BILLING]
+print(f"{REF_BILLING} lists itself as the servicing provider on "
+      f"{int(_ref_role['lines_listing_itself_as_servicing'].iloc[0]) if len(_ref_role) else 0:,} lines")
+
 
 # =============================================================================
 #  COMBINE: one row per provider flagged in ANY window
@@ -405,7 +597,9 @@ TREND_RANK = {
 }
 
 def trend_label(r):
-    st = {s: r[f"status_{s}"] for s in ("Full", "1Y", "6M")}
+    # [MERGE] a window counts as flagged if EITHER the percentile screen or the pattern test flagged it
+    st = {s: ("FLAG" if (r[f"status_{s}"] == "FLAG" or r.get(f"pattern_{s}", "")) else r[f"status_{s}"])
+          for s in ("Full", "1Y", "6M")}
     if "not run" in st.values():
         return "Unclassified (window skipped)"
     f, y, s = (st[x] == "FLAG" for x in ("Full", "1Y", "6M"))
@@ -424,11 +618,14 @@ def trend_label(r):
 def combine(lvl):
     key, ref = LEVELS[lvl]["key"], LEVELS[lvl]["ref"]
     wins = scored[lvl]
-    ids = sorted(set().union(*[set(s.loc[s.is_hit, key]) for s in wins.values()])) if wins else []
+    pl = pattern_label[lvl]                                                       # [MERGE]
+    sets = [set(s.loc[s.is_hit, key]) for s in wins.values()] + [set(d) for d in pl.values()]
+    ids = sorted(set().union(*sets)) if sets else []                              # [MERGE] + pattern matches
     out = pd.DataFrame({key: ids})
 
     for sfx in SFX:
         s = wins.get(sfx)
+        out[f"pattern_{sfx}"] = out[key].map(pl.get(sfx, {})).fillna("")        # [MERGE]
         if s is None:
             out[f"status_{sfx}"] = "not run"
             continue
@@ -440,7 +637,16 @@ def combine(lvl):
                 T2_PM: f"{T2_PM}_{sfx}"}
         out = out.merge(s[[key] + list(cols)].rename(columns=cols), on=key, how="left")
 
-    out["windows_flagged"] = (out[[f"status_{x}" for x in SFX]] == "FLAG").sum(axis=1)
+    # [MERGE] flagged by either method; which method(s) found the provider; strongest pattern label
+    pct_any = (out[[f"status_{x}" for x in SFX]] == "FLAG")
+    pat_any = (out[[f"pattern_{x}" for x in SFX]] != "")
+    out["windows_flagged"] = (pct_any.values | pat_any.values).sum(axis=1)
+    out["match_basis"] = np.select([pct_any.any(axis=1) & pat_any.any(axis=1), pat_any.any(axis=1)],
+                                   ["Both", "Pattern only"], default="Percentile only")
+    out["basis_rank"] = out["match_basis"].map({"Both": 1, "Pattern only": 2, "Percentile only": 3})
+    _rank = {FULL: 1, BILL_MATCH: 1, CLOSE: 2, IMP_ONLY: 3}
+    out["pattern_best"] = out[[f"pattern_{x}" for x in SFX]].apply(
+        lambda r: min([v for v in r if v], key=lambda v: _rank[v], default=""), axis=1)
     out["trend"] = out.apply(trend_label, axis=1)
     out["trend_rank"] = out["trend"].map(TREND_RANK)
     out["is_reference"] = out[key] == ref
@@ -460,11 +666,30 @@ def combine(lvl):
         ref_ents = set(pairs_all.loc[pairs_all[SPROV_COL] == REF_SERVICING, BPROV_COL])
         out["ref_clinician_bills_here"] = out[key].isin(ref_ents)
 
-    lead = [key, "is_reference", "trend", "windows_flagged"] + [f"status_{x}" for x in SFX] + \
+    # [MERGE] pattern detail from the widest window, duplicate involvement, role check
+    pcols = ["days_over_24h", "days_over_24h_with_other_biller", "n_other_billers", "top_other_biller",
+             "other_biller_share", "self_timed_units_per_day", "other_timed_units_per_day",
+             "units_ratio_other_vs_self"]
+    wide = next((x for x in SFX if x in patterns), None)
+    if lvl == "serv" and wide:
+        out = out.merge(patterns[wide][[SPROV_COL] + pcols]
+                        .rename(columns={c: f"{c}_{wide}" for c in pcols}), on=key, how="left")
+    if lvl == "bill":
+        matched = {}
+        for pt in patterns.values():
+            for _, r in pt[pt["pattern"].isin([FULL, CLOSE]) & pt["top_other_biller"].notna()].iterrows():
+                matched.setdefault(r["top_other_biller"], set()).add(r[SPROV_COL])
+        out["matched_clinicians"] = out[key].map(lambda b: ", ".join(sorted(matched.get(b, ()))))
+        out = out.merge(role_pd[[BPROV_COL, "lines_listing_itself_as_servicing", "pct_lines_listing_itself",
+                                 "paid_listing_itself_as_servicing"]], on=key, how="left")
+    out = out.merge(dup_inv_pd.rename(columns={"prov": key}), on=key, how="left")
+
+    lead = [key, "is_reference", "match_basis", "pattern_best", "trend", "windows_flagged"] + \
+           [f"status_{x}" for x in SFX] + [f"pattern_{x}" for x in SFX] + \
            [f"recovery_{c}" for c in ("total_paid", "timed_paid", T2, T1)] + ["top_proc_code"]
-    rest = [c for c in out.columns if c not in lead and c != "trend_rank"]
-    return (out.sort_values(["is_reference", "trend_rank", f"recovery_{T1}", f"recovery_{T2}"],
-                            ascending=[False, True, False, False])
+    rest = [c for c in out.columns if c not in lead and c not in ("trend_rank", "basis_rank")]
+    return (out.sort_values(["is_reference", "basis_rank", "trend_rank", f"recovery_{T1}", f"recovery_{T2}"],
+                            ascending=[False, True, True, False, False])
                [lead + rest].reset_index(drop=True))
 
 serv_comb = combine("serv")
@@ -528,9 +753,57 @@ criteria = pd.DataFrame([
     ["Caveat", "Exposure is implausible/impossible time on the face of the claims, not an adjudicated overpayment"],
     ["Caveat", "Servicing and billing exposure are the same dollars viewed two ways — do not add them"],
     ["Caveat", "A servicing ID that is actually a group/organization NPI will show false 'impossible' days — verify"],
+    # [MERGE]
+    ["Pattern test (servicing)", f"{FULL}: >= {MIN_IMPOSSIBLE_DAYS} clinician-days over 24 timed hours with another "
+                                 f"biller that day, bills for herself AND is billed by others, others carry >= "
+                                 f"{int(MIN_OTHER_BILLER_SHARE*100)}% of paid $ at >= {MIN_UNITS_RATIO}x her own timed "
+                                 f"units/day. {CLOSE}: same without self-billing. {IMP_ONLY}: >= "
+                                 f"{MIN_IMPOSSIBLE_DAYS} days over 24h. Absolute test, no percentiles, no activity floor."],
+    ["Pattern test (billing)", f"{BILL_MATCH}: the entity paid the most for a {FULL} / {CLOSE} clinician in that window"],
+    ["match_basis", "Both = percentile screen AND pattern test; Pattern only; Percentile only. Sorted in that order"],
+    ["Trend (merged)", "A window counts as flagged when either method flagged the provider in it"],
+    ["Red-flag count caveat", "Several hour features (avg/max hours, % days over 8h/12h/24h) measure the same "
+                              "behavior; n_red_flags overstates independent evidence — read it with match_basis"],
+    ["Cross-biller duplicate", f"Same member + procedure + service date PAID to >= 2 billing entities ({rec_label}). "
+                               f"possible_duplicate_paid = paid beyond the largest single payment. Lines of business "
+                               f"{COB_LOB_VALUES} excluded when that column exists. Can be legitimate (e.g. two "
+                               f"clinicians, separate sessions) — verify before citing"],
+    ["'dup pattern' features", "pct_days_dup_pattern / pct_members_in_dup mean identical code+modifiers+units across "
+                               "different members (cookie-cutter) — NOT double billing"],
+    ["Self-listed servicing", "Entities that bill for other providers AND list themselves as the servicing "
+                              f"provider on some lines ({rec_label})"],
+    ["Window anchor", f"{WINDOW_ANCHOR}: windows end {ANCHOR_DATE}"],
 ], columns=["Item", "Definition"])
 
 sig_df = pd.DataFrame(signatures, columns=["Window", "Level", "Reference", "N features", "Signature features"])
+
+# [MERGE] Calibration: does the reference clinician match the pattern test?
+calib_rows = []
+for label, sfx, _ in TIME_WINDOWS:
+    pt = patterns.get(sfx)
+    r = pt[pt[SPROV_COL] == REF_SERVICING] if pt is not None else pd.DataFrame()
+    if r.empty:
+        calib_rows.append([label, f"{REF_SERVICING} has no claims in this window", "", "N/A"])
+        continue
+    r = r.iloc[0]
+    for name, val, ok in [
+        (f">= {MIN_IMPOSSIBLE_DAYS} days over 24h with another biller", int(r.days_over_24h_with_other_biller),
+         r.days_over_24h_with_other_biller >= MIN_IMPOSSIBLE_DAYS),
+        ("bills for herself AND is billed by another entity",
+         f"self {int(r.self_lines)} / other {int(r.other_biller_lines)} lines", r.self_lines > 0 and r.other_biller_lines > 0),
+        (f"other billers carry >= {MIN_OTHER_BILLER_SHARE:.0%} of paid $", round(float(r.other_biller_share), 3),
+         r.other_biller_share >= MIN_OTHER_BILLER_SHARE),
+        (f"other-biller timed units/day >= {MIN_UNITS_RATIO}x self-billed", round(float(r.units_ratio_other_vs_self), 2),
+         r.units_ratio_other_vs_self >= MIN_UNITS_RATIO),
+    ]:
+        calib_rows.append([label, name, val, "PASS" if ok else "FAIL"])
+    calib_rows.append([label, "pattern label", r.pattern or "(none)", "PASS" if r.pattern == FULL else "CHECK"])
+calibration = pd.DataFrame(calib_rows, columns=["Window", "Check", "Value", "Result"])
+print("\nCalibration (reference pattern):")
+print(calibration.to_string(index=False))
+if not (calibration["Result"].eq("PASS") & calibration["Check"].eq("pattern label")).any():
+    print(f"WARNING: {REF_SERVICING} is not a {FULL} in any window. Review the settings before trusting "
+          f"the pattern-test results.")
 
 with pd.ExcelWriter(OUTPUT_PATH, engine="openpyxl") as w:
     criteria.to_excel(w,      sheet_name="Criteria",            index=False)
@@ -539,6 +812,14 @@ with pd.ExcelWriter(OUTPUT_PATH, engine="openpyxl") as w:
     bill_comb.to_excel(w,     sheet_name="Billing_Combined",    index=False)
     network_links.to_excel(w, sheet_name="Network_Links",       index=False)
     sig_df.to_excel(w,        sheet_name="Signatures",          index=False)
+    # [MERGE]
+    calibration.to_excel(w,   sheet_name="Calibration",         index=False)
+    dup_ref_pd.to_excel(w,    sheet_name="Duplicates_RefPair",  index=False)
+    dup_pairs_pd.to_excel(w,  sheet_name="Duplicates_Pairs",    index=False)
+    dup_detail_pd.to_excel(w, sheet_name="Duplicates_Detail",   index=False)
+    role_pd.to_excel(w,       sheet_name="Self_Listed_Servicing", index=False)
+    for sfx, pt in patterns.items():
+        pt[pt["pattern"] != ""].to_excel(w, sheet_name=f"Pattern_{sfx}", index=False)
     for lvl, name in (("serv", "Serv"), ("bill", "Bill")):
         for sfx in SFX:
             if sfx in scored[lvl]:

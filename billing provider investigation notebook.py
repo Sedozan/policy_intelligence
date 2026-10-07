@@ -30,6 +30,18 @@
 #   PART C — Excel Export (multi-sheet workbook, one set per time window)
 #
 # Parameterised: change TARGET_BILLING_PROVIDER and rerun for any entity.
+#
+# [MERGE] Changes (every section and measure is kept):
+#   - Hours come only from TIMED codes (UNIT_MINUTES), excluding group sessions
+#     (GROUP_MODIFIERS) and multi-day lines — the same definition as the lookalike
+#     screen. Before, every unit of every code counted as 15 minutes.
+#   - Entity-day hours (all of the entity's clinicians added together) are kept but
+#     labelled as such: an agency with 20 clinicians legitimately passes 24 hours a day.
+#   - NEW clinician-day measures: for each clinician the entity billed for on a day, that
+#     clinician's timed hours that day across ALL billers. "Impossible" lives here.
+#   - Per-code hours are blank for codes that aren't billed in time units.
+#   - New sheets per window: Cross_Biller_Dups (the target's services also paid to another
+#     entity) and Self_Listed (lines where the target lists itself as servicing provider).
 # =============================================================================
 
 from pyspark.sql import SparkSession
@@ -63,6 +75,20 @@ CATEGORY_COL  = "Category"
 
 # Hour thresholds (units are 15-min; 4 units = 1 hour)
 HOUR_THRESHOLDS = [4, 8, 12, 16, 20, 24]
+
+# [MERGE] Timed codes: minutes per paid unit. Only these feed hours. Same list as the lookalike
+# screen — VERIFY against the AHCCCS fee schedule before sharing results.
+UNIT_MINUTES = {
+    "H0004": 15,  # BH counseling/therapy, per 15 min
+    "H2014": 15,  # Skills training & development, per 15 min
+    "H2017": 15,  # Psychosocial rehab, per 15 min
+    "H2019": 15,  # Therapeutic behavioral services, per 15 min
+    "H0038": 15,  # Self-help/peer services, per 15 min
+    "H2027": 15,  # Psychoeducational service, per 15 min
+    "T1016": 15,  # Case management, per 15 min
+}
+GROUP_MODIFIERS = ["HQ"]          # group setting — excluded from hour math
+COB_LOB_VALUES  = ["MSP"]         # duplicates under these lines of business are coordination of benefits
 
 # Output path
 OUTPUT_PATH = (
@@ -105,7 +131,9 @@ df_bhp_full = df_all.join(bhp_sprovs_spark, on=SPROV_COL, how="inner")
 df_bhp_full = (
     df_bhp_full
     .withColumn("srv_date", F.to_date(F.col(SRV_BEG_COL).cast("string"), "yyyyMMdd"))
+    .withColumn("srv_end",  F.to_date(F.col(SRV_END_COL).cast("string"), "yyyyMMdd"))   # [MERGE]
     .withColumn("qty", F.col(QTY_COL).cast("double"))
+    .withColumn(PROC_COL, F.upper(F.trim(F.col(PROC_COL))))                             # [MERGE]
 )
 
 # Build billing signature expression
@@ -120,6 +148,28 @@ else:
     sig_expr = F.concat_ws("|", F.col(PROC_COL), F.col(QTY_COL).cast("string"))
 
 df_bhp_full = df_bhp_full.withColumn("billing_signature", sig_expr)
+
+# [MERGE] Timed minutes: timed code, not a group session, single-day line
+_is_group = F.lit(False)
+for c in mod_cols_available:
+    _is_group = _is_group | F.coalesce(F.col(c), F.lit("")).isin(GROUP_MODIFIERS)
+_unit_map = F.create_map(*[F.lit(x) for kv in UNIT_MINUTES.items() for x in kv])
+df_bhp_full = (
+    df_bhp_full
+    .withColumn("unit_minutes", _unit_map[F.col(PROC_COL)])
+    .withColumn("is_timed", F.col("unit_minutes").isNotNull() & ~_is_group &
+                (F.coalesce(F.col("srv_end"), F.col("srv_date")) == F.col("srv_date")))
+    .withColumn("timed_minutes", F.when(F.col("is_timed"), F.col("qty") * F.col("unit_minutes")).otherwise(0.0))
+)
+
+# [MERGE] All paid lines (not cohort-filtered), for the duplicate and self-listing checks
+df_all_n = (
+    df_all
+    .withColumn("srv_date", F.to_date(F.col(SRV_BEG_COL).cast("string"), "yyyyMMdd"))
+    .withColumn("qty", F.col(QTY_COL).cast("double"))
+    .withColumn("paid", F.col(PMT_COL).cast("double"))
+    .withColumn(PROC_COL, F.upper(F.trim(F.col(PROC_COL))))
+)
 
 # Cohort overview
 bp_cohort_size = df_bhp_full.select(BPROV_COL).distinct().count()
@@ -153,12 +203,64 @@ def safe_val(df, col, default="N/A"):
     except Exception:
         return default
 
+def _rnd(v, n):
+    """[MERGE] round() that tolerates blanks (hours are blank for codes not billed in time units)."""
+    try:
+        return None if v is None or pd.isna(v) else round(float(v), n)
+    except (TypeError, ValueError):
+        return None
+
 def ratio(target_val, peer_val):
     try:
         t, p = float(target_val), float(peer_val)
         return round(t / p, 1) if p > 0 else None
     except Exception:
         return None
+
+
+# [MERGE] ── Cross-biller duplicates and self-listing for the target ───────────────
+def _scope(cutoff_str):
+    return df_all_n if cutoff_str is None else df_all_n.filter(F.col("srv_date") >= F.lit(cutoff_str))
+
+
+def cross_biller_dups(cutoff_str, target_col, target):
+    """Services on the target's lines (same member + procedure + date) that were ALSO paid
+    to another billing entity. Searches all paid lines, not just the cohort."""
+    scope = _scope(cutoff_str)
+    k = [MEMBER_COL, PROC_COL, "srv_date"]
+    keys = scope.filter(F.col(target_col) == target).select(*k).distinct()
+    elig = scope.join(keys, k).filter(F.col("paid") > 0)
+    if COB_LOB_VALUES and "line_of_business" in scope.columns:
+        elig = elig.filter(F.col("line_of_business").isNull() | ~F.col("line_of_business").isin(COB_LOB_VALUES))
+    per_b = elig.groupBy(*k, BPROV_COL).agg(
+        F.sum("paid").alias("b_paid"), F.sum("qty").alias("b_units"),
+        F.array_sort(F.collect_set(SPROV_COL)).alias("b_servicers"))
+    return (per_b.groupBy(*k).agg(
+                F.count(F.lit(1)).alias("n_billers"),
+                F.concat_ws(", ", F.array_sort(F.collect_list(BPROV_COL))).alias("billers"),
+                F.concat_ws(", ", F.array_sort(F.array_distinct(F.flatten(F.collect_list("b_servicers"))))).alias("servicers"),
+                F.concat_ws(", ", F.collect_list(F.col("b_units").cast("string"))).alias("units_by_biller"),
+                (F.countDistinct("b_units") == 1).alias("same_units"),
+                F.round(F.sum("b_paid"), 2).alias("paid_total"),
+                F.round(F.sum("b_paid") - F.max("b_paid"), 2).alias("possible_duplicate_paid"))
+            .filter(F.col("n_billers") >= 2)
+            .orderBy("srv_date")
+            .toPandas())
+
+
+def self_listed(cutoff_str, target):
+    """Lines the target bills where it ALSO lists itself as the servicing provider
+    (colleague's question: the agency should never be the servicing provider)."""
+    t = _scope(cutoff_str).filter(F.col(BPROV_COL) == target)
+    return (t.groupBy((F.col(SPROV_COL) == F.col(BPROV_COL)).alias("lists_itself_as_servicing"))
+             .agg(F.count(F.lit(1)).alias("lines"),
+                  F.countDistinct(MEMBER_COL).alias("members"),
+                  F.sum("qty").alias("units"),
+                  F.round(F.sum("paid"), 2).alias("paid"),
+                  F.min("srv_date").alias("first_service"),
+                  F.max("srv_date").alias("last_service"))
+             .orderBy(F.desc("lists_itself_as_servicing"))
+             .toPandas())
 
 
 # =============================================================================
@@ -190,8 +292,10 @@ def run_analysis(df_bhp, window_label, window_suffix):
             F.sum("qty").alias("daily_units"),
             F.countDistinct(MEMBER_COL).alias("daily_members"),
             F.countDistinct(SPROV_COL).alias("daily_servicing_provs"),
+            F.sum("timed_minutes").alias("daily_timed_minutes"),              # [MERGE]
         )
-        .withColumn("daily_hours", F.col("daily_units") * 15 / 60)
+        # [MERGE] entity-day timed hours = all of the entity's clinicians added together
+        .withColumn("daily_hours", F.col("daily_timed_minutes") / 60)
     )
 
     provider_daily = (
@@ -229,11 +333,24 @@ def run_analysis(df_bhp, window_label, window_suffix):
         col_name = f"pct_days_over_{hrs}h"
         thresh_df = (
             daily_agg
-            .withColumn("over", (F.col("daily_units") > hrs * 4).cast("int"))
+            .withColumn("over", (F.col("daily_hours") > hrs).cast("int"))   # [MERGE] timed hours
             .groupBy(KEY)
             .agg((F.sum("over") / F.count("srv_date") * 100).alias(col_name))
         )
         provider_daily = provider_daily.join(thresh_df, on=KEY, how="left")
+
+    # [MERGE] Clinician-day hours: for each clinician this entity billed for on a day, that
+    # clinician's timed hours that day across ALL billers. This is where "impossible" is meaningful.
+    cday = df_bhp.groupBy(SPROV_COL, "srv_date").agg((F.sum("timed_minutes") / 60).alias("clin_hours"))
+    bday = df_bhp.select(KEY, SPROV_COL, "srv_date").distinct().join(cday, [SPROV_COL, "srv_date"])
+    clin_stats = bday.groupBy(KEY).agg(
+        F.count("*").alias("clinician_days"),
+        F.mean("clin_hours").alias("avg_clinician_hours_day"),
+        F.max("clin_hours").alias("max_clinician_hours_day"),
+        *[(F.avg((F.col("clin_hours") > h).cast("int")) * 100).alias(f"pct_clin_days_over_{h}h")
+          for h in HOUR_THRESHOLDS],
+    )
+    provider_daily = provider_daily.join(clin_stats, on=KEY, how="left")
 
     target_daily_pd = provider_daily.filter(F.col(KEY) == TGT).toPandas()
     peer_daily = provider_daily.filter(F.col(KEY) != TGT)
@@ -250,6 +367,13 @@ def run_analysis(df_bhp, window_label, window_suffix):
         F.expr("percentile_approx(avg_servicing_provs_per_day, 0.5)").alias("peer_med_avg_sprovs_day"),
         *[
             F.expr(f"percentile_approx(pct_days_over_{h}h, 0.5)").alias(f"peer_med_pct_over_{h}h")
+            for h in HOUR_THRESHOLDS
+        ],
+        # [MERGE] clinician-day measures
+        F.expr("percentile_approx(avg_clinician_hours_day, 0.5)").alias("peer_med_avg_clin_hours_day"),
+        F.expr("percentile_approx(max_clinician_hours_day, 0.5)").alias("peer_med_max_clin_hours_day"),
+        *[
+            F.expr(f"percentile_approx(pct_clin_days_over_{h}h, 0.5)").alias(f"peer_med_pct_clin_over_{h}h")
             for h in HOUR_THRESHOLDS
         ],
     ).toPandas()
@@ -288,9 +412,10 @@ def run_analysis(df_bhp, window_label, window_suffix):
             F.countDistinct(MEMBER_COL).alias("unique_members"),
             F.countDistinct("srv_date").alias("active_days"),
             F.countDistinct(PROC_COL).alias("unique_proc_codes"),
+            F.sum("timed_minutes").alias("timed_minutes"),                          # [MERGE]
         )
         .withColumn("units_per_day", F.col("total_units") / F.col("active_days"))
-        .withColumn("hours_per_day", F.col("total_units") * 15 / 60 / F.col("active_days"))
+        .withColumn("hours_per_day", F.col("timed_minutes") / 60 / F.col("active_days"))  # [MERGE] timed
         .orderBy(F.desc("total_paid"))
     )
     sprov_breakdown_pd = sprov_breakdown.toPandas()
@@ -307,8 +432,9 @@ def run_analysis(df_bhp, window_label, window_suffix):
             .agg(
                 F.sum("qty").alias("daily_units"),
                 F.countDistinct(MEMBER_COL).alias("daily_members"),
+                F.sum("timed_minutes").alias("daily_timed_minutes"),      # [MERGE]
             )
-            .withColumn("daily_hours", F.col("daily_units") * 15 / 60)
+            .withColumn("daily_hours", F.col("daily_timed_minutes") / 60) # [MERGE] timed codes only
         )
         sp_stats = sp_daily.agg(
             F.mean("daily_units").alias("avg_units_day"),
@@ -491,13 +617,13 @@ def run_analysis(df_bhp, window_label, window_suffix):
         ("Total servicing providers",
          safe_val(target_daily_pd, "total_servicing_providers"),
          safe_val(peer_daily_med,  "peer_med_total_sprovs")),
-        ("Avg timed units/day",
+        ("Avg units/day (all codes, entity)",                                   # [MERGE] label
          safe_val(target_daily_pd, "avg_units_per_day"),
          safe_val(peer_daily_med,  "peer_med_avg_units_day")),
-        ("Avg hours/day",
+        ("Avg timed hours/day (entity, all clinicians combined)",               # [MERGE] label
          safe_val(target_daily_pd, "avg_hours_per_day"),
          safe_val(peer_daily_med,  "peer_med_avg_hours_day")),
-        ("Max hours in a single day",
+        ("Max timed hours in a day (entity, all clinicians combined)",          # [MERGE] label
          safe_val(target_daily_pd, "max_hours_per_day"),
          safe_val(peer_daily_med,  "peer_med_max_hours_day")),
         ("Avg unique members/day",
@@ -509,9 +635,24 @@ def run_analysis(df_bhp, window_label, window_suffix):
     ]
     for hrs in HOUR_THRESHOLDS:
         metrics.append((
-            f"% days > {hrs} hours",
+            f"% entity-days > {hrs} timed hours (all clinicians combined)",    # [MERGE] label
             safe_val(target_daily_pd, f"pct_days_over_{hrs}h"),
             safe_val(peer_daily_med,  f"peer_med_pct_over_{hrs}h"),
+        ))
+    # [MERGE] clinician-day measures (one clinician's timed hours that day, across all billers)
+    metrics += [
+        ("Avg clinician timed hours/day",
+         safe_val(target_daily_pd, "avg_clinician_hours_day"),
+         safe_val(peer_daily_med,  "peer_med_avg_clin_hours_day")),
+        ("Max clinician timed hours in a day",
+         safe_val(target_daily_pd, "max_clinician_hours_day"),
+         safe_val(peer_daily_med,  "peer_med_max_clin_hours_day")),
+    ]
+    for hrs in HOUR_THRESHOLDS:
+        metrics.append((
+            f"% clinician-days > {hrs} timed hours",
+            safe_val(target_daily_pd, f"pct_clin_days_over_{hrs}h"),
+            safe_val(peer_daily_med,  f"peer_med_pct_clin_over_{hrs}h"),
         ))
     metrics += [
         ("% days with identical patterns",
@@ -580,9 +721,11 @@ def run_analysis(df_bhp, window_label, window_suffix):
                 F.countDistinct(SPROV_COL).alias("servicing_providers"),
                 F.count("*").alias("line_count"),
                 F.sum(PMT_COL).alias("total_paid"),
+                F.sum("timed_minutes").alias("timed_minutes"),                         # [MERGE]
             )
             .withColumn("units_per_day",    F.col("total_units") / F.col("active_days"))
-            .withColumn("hours",            F.col("total_units") * 15 / 60)
+            # [MERGE] hours only for codes billed in time units (blank otherwise)
+            .withColumn("hours",            F.when(F.col("timed_minutes") > 0, F.col("timed_minutes") / 60))
             .withColumn("hours_per_day",    F.col("hours") / F.col("active_days"))
             .withColumn("members_per_day",  F.col("unique_members") / F.col("active_days"))
             .withColumn("units_per_member", F.col("total_units") / F.col("unique_members"))
@@ -595,13 +738,15 @@ def run_analysis(df_bhp, window_label, window_suffix):
             .agg(
                 F.sum("qty").alias("daily_units"),
                 F.countDistinct(MEMBER_COL).alias("daily_members"),
+                F.sum("timed_minutes").alias("daily_timed_minutes"),                   # [MERGE]
             )
-            .withColumn("daily_hours", F.col("daily_units") * 15 / 60)
+            # [MERGE] timed hours; blank for non-timed codes so their thresholds stay blank, not 0%
+            .withColumn("daily_hours", F.when(F.col("daily_timed_minutes") > 0, F.col("daily_timed_minutes") / 60))
         )
         for hrs in HOUR_THRESHOLDS:
             t_df = (
                 proc_daily
-                .withColumn("over", (F.col("daily_units") > hrs * 4).cast("int"))
+                .withColumn("over", (F.col("daily_hours") > hrs).cast("int"))         # [MERGE] timed hours
                 .groupBy(KEY)
                 .agg((F.sum("over") / F.count("srv_date") * 100).alias(f"pct_days_over_{hrs}h"))
             )
@@ -610,7 +755,8 @@ def run_analysis(df_bhp, window_label, window_suffix):
         # Per-session hours (billing_provider × member × date)
         per_session = (
             df_proc.groupBy(KEY, MEMBER_COL, "srv_date")
-            .agg((F.sum("qty") * 15 / 60).alias("session_hours"))
+            .agg(F.sum("timed_minutes").alias("_m"))                                   # [MERGE]
+            .withColumn("session_hours", F.when(F.col("_m") > 0, F.col("_m") / 60))    # [MERGE] timed only
         )
         session_stats = (
             per_session.groupBy(KEY)
@@ -687,36 +833,36 @@ def run_analysis(df_bhp, window_label, window_suffix):
             "target_servicing_providers":    t.get("servicing_providers"),
             "peer_med_servicing_providers":  p.get("peer_med_servicing_providers"),
             # Daily rates
-            "target_units_per_day":          round(t.get("units_per_day", 0), 2),
-            "peer_med_units_per_day":        round(p.get("peer_med_units_per_day", 0), 2),
+            "target_units_per_day":          _rnd(t.get("units_per_day", 0), 2),
+            "peer_med_units_per_day":        _rnd(p.get("peer_med_units_per_day", 0), 2),
             "ratio_units_per_day":           ratio(t.get("units_per_day"), p.get("peer_med_units_per_day")),
-            "target_hours_per_day":          round(t.get("hours_per_day", 0), 2),
-            "peer_med_hours_per_day":        round(p.get("peer_med_hours_per_day", 0), 2),
+            "target_hours_per_day":          _rnd(t.get("hours_per_day", 0), 2),
+            "peer_med_hours_per_day":        _rnd(p.get("peer_med_hours_per_day", 0), 2),
             # Per-member
-            "target_units_per_member":       round(t.get("units_per_member", 0), 2),
-            "peer_med_units_per_member":     round(p.get("peer_med_units_per_member", 0), 2),
+            "target_units_per_member":       _rnd(t.get("units_per_member", 0), 2),
+            "peer_med_units_per_member":     _rnd(p.get("peer_med_units_per_member", 0), 2),
             "ratio_units_per_member":        ratio(t.get("units_per_member"), p.get("peer_med_units_per_member")),
             # Payment
-            "target_total_paid":             round(t.get("total_paid", 0), 2),
-            "peer_med_total_paid":           round(p.get("peer_med_total_paid", 0), 2),
+            "target_total_paid":             _rnd(t.get("total_paid", 0), 2),
+            "peer_med_total_paid":           _rnd(p.get("peer_med_total_paid", 0), 2),
             "ratio_total_paid":              ratio(t.get("total_paid"), p.get("peer_med_total_paid")),
-            "target_paid_per_unit":          round(t.get("paid_per_unit", 0), 2),
-            "peer_med_paid_per_unit":        round(p.get("peer_med_paid_per_unit", 0), 2),
+            "target_paid_per_unit":          _rnd(t.get("paid_per_unit", 0), 2),
+            "peer_med_paid_per_unit":        _rnd(p.get("peer_med_paid_per_unit", 0), 2),
             # Per-session hours (billing_provider × member × date grain)
-            "target_avg_session_hours":      round(t.get("avg_session_hours", 0), 2),
-            "peer_med_avg_session_hours":    round(p.get("peer_med_avg_session_hours", 0), 2),
-            "target_median_session_hours":   round(t.get("median_session_hours", 0), 2),
-            "peer_med_median_session_hours": round(p.get("peer_med_median_session_hours", 0), 2),
-            "target_max_session_hours":      round(t.get("max_session_hours", 0), 2),
-            "peer_med_max_session_hours":    round(p.get("peer_med_max_session_hours", 0), 2),
+            "target_avg_session_hours":      _rnd(t.get("avg_session_hours", 0), 2),
+            "peer_med_avg_session_hours":    _rnd(p.get("peer_med_avg_session_hours", 0), 2),
+            "target_median_session_hours":   _rnd(t.get("median_session_hours", 0), 2),
+            "peer_med_median_session_hours": _rnd(p.get("peer_med_median_session_hours", 0), 2),
+            "target_max_session_hours":      _rnd(t.get("max_session_hours", 0), 2),
+            "peer_med_max_session_hours":    _rnd(p.get("peer_med_max_session_hours", 0), 2),
             # Members per day
-            "target_avg_members_day":        round(t.get("avg_members_day", 0), 2),
-            "peer_med_avg_members_day":      round(p.get("peer_med_avg_members_day", 0), 2),
+            "target_avg_members_day":        _rnd(t.get("avg_members_day", 0), 2),
+            "peer_med_avg_members_day":      _rnd(p.get("peer_med_avg_members_day", 0), 2),
             "target_max_members_day":        t.get("max_members_day"),
             "peer_med_max_members_day":      p.get("peer_med_max_members_day"),
             # Thresholds
-            **{f"target_pct_over_{h}h": round(t.get(f"pct_days_over_{h}h", 0), 1) for h in HOUR_THRESHOLDS},
-            **{f"peer_med_pct_over_{h}h": round(p.get(f"peer_med_pct_days_over_{h}h", 0), 1) for h in HOUR_THRESHOLDS},
+            **{f"target_pct_over_{h}h": _rnd(t.get(f"pct_days_over_{h}h", 0), 1) for h in HOUR_THRESHOLDS},
+            **{f"peer_med_pct_over_{h}h": _rnd(p.get(f"peer_med_pct_days_over_{h}h", 0), 1) for h in HOUR_THRESHOLDS},
             # Percentile rank
             "pctile_units_per_day": round(target_rank["pct_rank_units_day"].values[0], 1) if not target_rank.empty else None,
             "pctile_hours_per_day": round(target_rank["pct_rank_hours_day"].values[0], 1) if not target_rank.empty else None,
@@ -862,6 +1008,21 @@ for window_label, window_suffix, months_back in TIME_WINDOWS:
     window_sheets = run_analysis(df_bhp_window, window_label, window_suffix)
     all_sheets.update(window_sheets)
 
+    # [MERGE] duplicates and self-listing for the target in this window
+    _cut = cutoff_str if months_back is not None else None
+    dups = cross_biller_dups(_cut, BPROV_COL, TARGET_BILLING_PROVIDER)
+    selfl = self_listed(_cut, TARGET_BILLING_PROVIDER)
+    n_self = int(selfl.loc[selfl["lists_itself_as_servicing"] == True, "lines"].sum()) if len(selfl) else 0
+    print(f"  Cross-biller duplicate services: {len(dups):,} "
+          f"(same units: {int(dups['same_units'].sum()) if len(dups) else 0}) | possible duplicate $: "
+          f"{dups['possible_duplicate_paid'].sum() if len(dups) else 0:,.2f} | "
+          f"lines listing itself as servicing: {n_self:,}")
+    # an empty sheet would be skipped below; write a note so "none found" is visible
+    all_sheets[f"Cross_Biller_Dups_{window_suffix}"] = dups if len(dups) else pd.DataFrame(
+        {"note": [f"No cross-biller duplicate services for {TARGET_BILLING_PROVIDER} in {window_label}"]})
+    all_sheets[f"Self_Listed_{window_suffix}"] = selfl if len(selfl) else pd.DataFrame(
+        {"note": [f"No paid lines for {TARGET_BILLING_PROVIDER} in {window_label}"]})
+
 
 # =============================================================================
 #  PART C — EXCEL EXPORT
@@ -880,7 +1041,8 @@ for _, ws, _ in TIME_WINDOWS:
 for _, ws, _ in TIME_WINDOWS:
     sheet_order.append(f"Anomalous_GT2x_{ws}")
 for _, ws, _ in TIME_WINDOWS:
-    for prefix in ["Servicing_Provs", "SProv_Daily", "Outlier_SProvs",
+    for prefix in ["Cross_Biller_Dups", "Self_Listed",                       # [MERGE]
+                   "Servicing_Provs", "SProv_Daily", "Outlier_SProvs",
                     "SProv_By_Code", "Patterns"]:
         sheet_order.append(f"{prefix}_{ws}")
 
