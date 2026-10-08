@@ -1,0 +1,8 @@
+import os
+need = ["acquire_ncci","ahcccs_tables","chapter_profile","config","detector_gen","extract_io","extract_rules","gap",
+        "ingest_ncci_tables","kb_io","ncci_routing","page_fidelity","policy_changes","policy_docs","post_checks",
+        "preflight_sql","quality","query_pack","registers","regress","rule_normalize","run_guard","schema",
+        "state_rules","state_seed","validate_gate"]
+pkg = next(p for p in sys.path if os.path.exists(os.path.join(p, "config.py")))
+missing = [m for m in need if not os.path.isfile(os.path.join(pkg, m + ".py"))]
+print(pkg, "-> missing:", missing or "none")
